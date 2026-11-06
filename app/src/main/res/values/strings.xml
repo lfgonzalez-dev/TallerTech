@@ -1,0 +1,35 @@
+<resources>
+    <string name="app_name">TallerTech</string>
+
+    <string name="login_tagline">
+        TECNOLOGÍA EN BUENAS MANOS
+    </string>
+
+    <string name="login_left_phrase">
+        MÁS/nQUE/nREPARACIONES
+    </string>
+
+    <string name="login_right_phrase">
+        EQUIPOS/nPERSONAS/nSOLUCIONES/nQUE SIGUEN
+    </string>
+
+    <string name="login_welcome">Bienvenido</string>
+
+    <string name="login_description">
+        Inicia sesión para gestionar tu taller de forma más inteligente.
+    </string>
+
+    <string name="login_email">Correo electrónico</string>
+    <string name="login_password">Contraseña</string>
+
+    <string name="login_button">Iniciar sesión</string>
+    <string name="login_forgot_password">¿Olvidaste tu contraseña?</string>
+
+    <string name="login_offline_tittle">Modo sin conexión disponible</string>
+
+    <string name="login_offline_description">
+        Tus datos se sincronizarán al recuperar el internet.
+    </string>
+
+
+</resources>

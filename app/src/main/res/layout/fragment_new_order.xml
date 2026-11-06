@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/tt_background"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="24dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="32dp">
+
+        <!-- Encabezado -->
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbarNewOrder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:title="Nueva orden"
+            app:subtitle="Registra el ingreso de un equipo al taller"
+            app:titleTextColor="@color/tt_text_primary"
+            app:subtitleTextColor="@color/tt_text_secondary" />
+
+        <!-- Cliente -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilOrderClient"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:hint="Cliente">
+
+            <AutoCompleteTextView
+                android:id="@+id/etOrderClient"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none"
+                android:maxLines="1" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Equipo -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilOrderEquipment"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="Equipo">
+
+            <AutoCompleteTextView
+                android:id="@+id/etOrderEquipment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none"
+                android:maxLines="1" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Problema reportado -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilOrderIssue"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="Problema reportado">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etOrderIssue"
+                android:layout_width="match_parent"
+                android:layout_height="110dp"
+                android:gravity="top|start"
+                android:inputType="textMultiLine"
+                android:maxLines="5" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Fecha de ingreso -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilOrderDate"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="Fecha de ingreso">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etOrderDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:cursorVisible="false"
+                android:focusable="false"
+                android:inputType="none" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Técnico -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilOrderTechnician"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="Técnico asignado">
+
+            <AutoCompleteTextView
+                android:id="@+id/etOrderTechnician"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none"
+                android:maxLines="1" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Estado inicial -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            app:cardBackgroundColor="@color/tt_surface"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/tt_border"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Estado inicial"
+                    android:textColor="@color/tt_text_secondary"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Pendiente"
+                    android:textColor="@color/tt_text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="La orden cambiará de estado durante el proceso de diagnóstico y reparación."
+                    android:textColor="@color/tt_text_secondary"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Crear orden -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCreateOrder"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="24dp"
+            android:text="Crear orden"
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            app:backgroundTint="@color/tt_navy"
+            app:cornerRadius="14dp" />
+
+        <!-- Cancelar -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancelOrder"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="10dp"
+            android:text="Cancelar"
+            android:textAllCaps="false"
+            android:textColor="@color/tt_navy"
+            app:cornerRadius="14dp"
+            app:strokeColor="@color/tt_navy" />
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

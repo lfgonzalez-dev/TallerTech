@@ -1,0 +1,16 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.TallerTech" parent="Theme.Material3.Light.NoActionBar">
+        <!-- Customize your dark theme here. -->
+        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+
+        <item name="android:windowBackground">@color/tt_background</item>
+        <item name="android:colorBackground">@color/tt_background</item>
+
+        <item name="android:navigationBarColor">@color/tt_background</item>
+        <item name="android:windowLightNavigationBar">true</item>
+
+        <item name="android:windowLightStatusBar">true</item>
+
+    </style>
+</resources>
