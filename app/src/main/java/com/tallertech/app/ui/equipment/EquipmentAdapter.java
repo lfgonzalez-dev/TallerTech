@@ -91,6 +91,11 @@ public class EquipmentAdapter
         return filteredEquipment.size();
     }
 
+    public void setEquipment(List<EquipmentUiModel> items) {
+        equipment.clear();
+        equipment.addAll(items);
+    }
+
     public void filtrar(String texto) {
 
         filteredEquipment.clear();

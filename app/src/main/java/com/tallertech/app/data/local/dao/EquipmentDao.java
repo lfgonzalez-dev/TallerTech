@@ -14,7 +14,7 @@ import java.util.List;
 @Dao
 public interface EquipmentDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     void insert(EquipmentEntity equipment);
 
     @Update
@@ -36,6 +36,9 @@ public interface EquipmentDao {
 
     @Query("SELECT * FROM equipment WHERE serial = :serial LIMIT 1")
     EquipmentEntity getBySerial(String serial);
+
+    @Query("SELECT COUNT(*) FROM equipment WHERE clientId = :clientId")
+    int countByClientId(String clientId);
 
     @Query("SELECT COUNT(*) FROM equipment")
     int count();

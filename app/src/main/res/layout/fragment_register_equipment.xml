@@ -173,7 +173,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
             android:gravity="center"
-            android:text="El guardado real se conectará cuando implementemos la capa de datos."
+            android:text="El equipo se guarda localmente en este dispositivo."
             android:textColor="@color/tt_text_secondary"
             android:textSize="11sp" />
 

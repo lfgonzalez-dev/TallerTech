@@ -4,6 +4,13 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.widget.Toast;
+import com.tallertech.app.data.repository.EquipmentRepository;
+import com.tallertech.app.data.repository.ClientRepository;
+import com.tallertech.app.data.local.entity.EquipmentEntity;
+import com.tallertech.app.data.local.entity.ClientEntity;
+import java.util.Map;
+import java.util.HashMap;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,6 +29,7 @@ public class EquipmentFragment extends Fragment {
 
     private RecyclerView rvEquipment;
     private EquipmentAdapter equipmentAdapter;
+    private String searchQuery = "";
 
     public EquipmentFragment() {
         super(R.layout.fragment_equipment);
@@ -66,8 +74,8 @@ public class EquipmentFragment extends Fragment {
                             int before,
                             int count) {
 
-                        equipmentAdapter
-                                .filtrar(s.toString());
+                        searchQuery = s.toString();
+                        equipmentAdapter.filtrar(searchQuery);
                     }
 
                     @Override
@@ -86,7 +94,7 @@ public class EquipmentFragment extends Fragment {
     private void configurarRecyclerView() {
 
         List<EquipmentUiModel> equipment =
-                crearEquiposPrueba();
+                new ArrayList<>();
 
         // Mostrar los equipos verticalmente.
         rvEquipment.setLayoutManager(
@@ -107,63 +115,41 @@ public class EquipmentFragment extends Fragment {
         );
     }
 
-    private List<EquipmentUiModel> crearEquiposPrueba() {
+    @Override
+    public void onResume() {
+        super.onResume();
+        View currentView = getView();
+        new ClientRepository(requireContext()).getAll(new ClientRepository.ClientsCallback() {
+            @Override
+            public void onResult(List<ClientEntity> clients) {
+                if (!isAdded() || getView() != currentView || currentView == null) return;
+                Map<String, String> names = new HashMap<>();
+                for (ClientEntity client : clients) names.put(client.getId(), client.getName());
+                new EquipmentRepository(requireContext()).getAll(new EquipmentRepository.EquipmentCallback() {
+                    @Override
+                    public void onResult(List<EquipmentEntity> equipment) {
+                        if (!isAdded() || getView() != currentView || currentView == null) return;
+                        List<EquipmentUiModel> items = new ArrayList<>();
+                        for (EquipmentEntity item : equipment) {
+                            items.add(new EquipmentUiModel(item.getType(), item.getBrand(),
+                                    item.getModel(), item.getSerial(), item.getDescription(),
+                                    names.getOrDefault(item.getClientId(), ""), "Registrado"));
+                        }
+                        equipmentAdapter.setEquipment(items);
+                        equipmentAdapter.filtrar(searchQuery);
+                    }
+                    @Override
+                    public void onError(Exception e) { mostrarErrorCarga(currentView); }
+                });
+            }
+            @Override
+            public void onError(Exception e) { mostrarErrorCarga(currentView); }
+        });
+    }
 
-        List<EquipmentUiModel> equipment =
-                new ArrayList<>();
-
-        // Datos temporales mientras desarrollamos el frontend.
-        equipment.add(new EquipmentUiModel(
-                "Laptop",
-                "Dell",
-                "Inspiron 15",
-                "DL-98541",
-                "No enciende y presenta desgaste exterior.",
-                "María López",
-                "En reparación"
-        ));
-
-        equipment.add(new EquipmentUiModel(
-                "Smartphone",
-                "Samsung",
-                "Galaxy A54",
-                "SM-A546",
-                "Pantalla dañada.",
-                "Carlos Méndez",
-                "Completado"
-        ));
-
-        equipment.add(new EquipmentUiModel(
-                "Laptop",
-                "Lenovo",
-                "IdeaPad 3",
-                "LN-45681",
-                "Falla de carga.",
-                "Ana Torres",
-                "Diagnóstico"
-        ));
-
-        equipment.add(new EquipmentUiModel(
-                "Tablet",
-                "Samsung",
-                "Galaxy Tab S8",
-                "TB-10294",
-                "Problema con el puerto USB.",
-                "Roberto Díaz",
-                "En reparación"
-        ));
-
-        equipment.add(new EquipmentUiModel(
-                "Computadora",
-                "HP",
-                "ProDesk 400",
-                "HP-78421",
-                "Mantenimiento preventivo.",
-                "Sofía Guzmán",
-                "Completado"
-        ));
-
-        return equipment;
+    private void mostrarErrorCarga(View currentView) {
+        if (!isAdded() || getView() != currentView || currentView == null) return;
+        Toast.makeText(requireContext(), "Error al cargar equipos", Toast.LENGTH_SHORT).show();
     }
 
     private void abrirRegistroEquipo() {
