@@ -11,6 +11,10 @@ import com.google.android.material.button.MaterialButton;
 import com.tallertech.app.R;
 import com.tallertech.app.ui.clients.RegisterClientFragment;
 import com.tallertech.app.ui.orders.NewOrderFragment;
+import com.tallertech.app.data.repository.StatisticsRepository;
+import com.tallertech.app.data.repository.ResultCallback;
+import android.widget.TextView;
+import android.widget.Toast;
 
 
 public class HomeFragment  extends Fragment{
@@ -51,6 +55,26 @@ public class HomeFragment  extends Fragment{
                 .replace(R.id.fragmentContainer, fragment)
                 .addToBackStack(null)
                 .commit();
+    }
+
+    @Override public void onResume() {
+        super.onResume();
+        View view = getView();
+        if (view == null) return;
+        new StatisticsRepository(requireContext()).load(new ResultCallback<StatisticsRepository.Statistics>() {
+            @Override public void onResult(StatisticsRepository.Statistics stats) {
+                if (!isAdded() || getView() != view) return;
+                ((TextView) view.findViewById(R.id.tvActiveOrders)).setText(String.valueOf(stats.activeOrders));
+                ((TextView) view.findViewById(R.id.tvEquipmentCount)).setText(String.valueOf(stats.activeEquipment));
+                ((TextView) view.findViewById(R.id.tvHomeRecentOrder)).setText(stats.latestOrder == null ? "Sin órdenes" : stats.latestOrder.order.getCode());
+                ((TextView) view.findViewById(R.id.tvHomeRecentEquipment)).setText(stats.latestOrder == null ? "" :
+                        stats.latestOrder.equipmentName + " · " + stats.latestOrder.order.getStatus());
+            }
+            @Override public void onError(Exception e) {
+                if (!isAdded() || getView() != view) return;
+                Toast.makeText(requireContext(), "Error al cargar estadísticas", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 }

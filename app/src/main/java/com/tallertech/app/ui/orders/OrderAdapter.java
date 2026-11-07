@@ -117,6 +117,12 @@ public class OrderAdapter
         aplicarFiltros();
     }
 
+    public void setOrders(List<OrderUiModel> items) {
+        orders.clear();
+        orders.addAll(items);
+        aplicarFiltros();
+    }
+
     private void aplicarFiltros() {
 
         filteredOrders.clear();

@@ -14,14 +14,14 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.tallertech.app.R;
+import com.tallertech.app.data.local.entity.ClientEntity;
+import com.tallertech.app.data.repository.ClientRepository;
+import com.tallertech.app.data.repository.ResultCallback;
 
 public class EditClientFragment extends Fragment {
-
-    private static final String ARG_NAME = "name";
-    private static final String ARG_PHONE = "phone";
-    private static final String ARG_EMAIL = "email";
-    private static final String ARG_ADDRESS = "address";
-    private static final String ARG_NOTES = "notes";
+    private ClientEntity client;
+    private MaterialButton btnSave;
+    private boolean saving;
 
     private TextInputLayout tilName;
     private TextInputLayout tilPhone;
@@ -40,21 +40,13 @@ public class EditClientFragment extends Fragment {
     }
 
     public static EditClientFragment newInstance(
-            String name,
-            String phone,
-            String email,
-            String address,
-            String notes) {
+            String id) {
 
         EditClientFragment fragment = new EditClientFragment();
 
         Bundle args = new Bundle();
 
-        args.putString(ARG_NAME, name);
-        args.putString(ARG_PHONE, phone);
-        args.putString(ARG_EMAIL, email);
-        args.putString(ARG_ADDRESS, address);
-        args.putString(ARG_NOTES, notes);
+        args.putString("id", id);
 
         fragment.setArguments(args);
 
@@ -82,7 +74,7 @@ public class EditClientFragment extends Fragment {
         etAddress = view.findViewById(R.id.etClientAddress);
         etNotes = view.findViewById(R.id.etClientNotes);
 
-        MaterialButton btnSave =
+        btnSave =
                 view.findViewById(R.id.btnSaveClient);
 
         // Cambiamos el formulario al modo edición.
@@ -92,6 +84,9 @@ public class EditClientFragment extends Fragment {
         btnSave.setText("Guardar cambios");
 
         // Cargar los datos actuales del cliente.
+        client = null;
+        saving = false;
+        btnSave.setEnabled(false);
         cargarDatosCliente();
 
         // Validar datos al presionar guardar.
@@ -108,14 +103,27 @@ public class EditClientFragment extends Fragment {
             return;
         }
 
-        etName.setText(args.getString(ARG_NAME, ""));
-        etPhone.setText(args.getString(ARG_PHONE, ""));
-        etEmail.setText(args.getString(ARG_EMAIL, ""));
-        etAddress.setText(args.getString(ARG_ADDRESS, ""));
-        etNotes.setText(args.getString(ARG_NOTES, ""));
+        View currentView = getView();
+        new ClientRepository(requireContext()).getById(args.getString("id"), new ResultCallback<ClientEntity>() {
+            @Override public void onResult(ClientEntity result) {
+                if (!isAdded() || getView() != currentView) return;
+                client = result;
+                etName.setText(client.getName());
+                etPhone.setText(client.getPhone());
+                etEmail.setText(client.getEmail());
+                etAddress.setText(client.getAddress());
+                etNotes.setText(client.getNotes());
+                btnSave.setEnabled(true);
+            }
+            @Override public void onError(Exception e) {
+                if (!isAdded() || getView() != currentView) return;
+                Toast.makeText(requireContext(), "Error al cargar cliente", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void validarFormulario() {
+        if (client == null || saving) return;
 
         String name = etName.getText().toString().trim();
         String phone = etPhone.getText().toString().trim();
@@ -149,12 +157,27 @@ public class EditClientFragment extends Fragment {
 
         if (formularioValido) {
 
-            // Por ahora simulamos la actualización.
-            Toast.makeText(
-                    requireContext(),
-                    "Datos modificados correctamente",
-                    Toast.LENGTH_SHORT
-            ).show();
+            client.setName(name);
+            client.setPhone(phone);
+            client.setEmail(email);
+            client.setAddress(etAddress.getText().toString().trim());
+            client.setNotes(etNotes.getText().toString().trim());
+            saving = true;
+            btnSave.setEnabled(false);
+            View currentView = getView();
+            new ClientRepository(requireContext()).update(client, new ResultCallback<Void>() {
+                @Override public void onResult(Void result) {
+                    if (!isAdded() || getView() != currentView) return;
+                    Toast.makeText(requireContext(), "Datos modificados correctamente", Toast.LENGTH_SHORT).show();
+                    getParentFragmentManager().popBackStack();
+                }
+                @Override public void onError(Exception e) {
+                    if (!isAdded() || getView() != currentView) return;
+                    saving = false;
+                    btnSave.setEnabled(true);
+                    Toast.makeText(requireContext(), "Error al actualizar cliente", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 }

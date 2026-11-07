@@ -97,7 +97,7 @@
                     android:id="@+id/tvClientCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="128"
+                    android:text="—"
                     android:textColor="@color/tt_text_primary"
                     android:textSize="24sp"
                     android:textStyle="bold" />
@@ -135,7 +135,7 @@
                     android:id="@+id/tvRecentClientCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="34"
+                    android:text="—"
                     android:textColor="@color/tt_text_primary"
                     android:textSize="24sp"
                     android:textStyle="bold" />

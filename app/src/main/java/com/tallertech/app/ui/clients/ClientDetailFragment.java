@@ -14,6 +14,11 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.button.MaterialButton;
 import com.tallertech.app.R;
 import com.tallertech.app.ui.orders.NewOrderFragment;
+import com.tallertech.app.data.local.entity.ClientEntity;
+import com.tallertech.app.data.local.OrderDetails;
+import com.tallertech.app.data.repository.ClientRepository;
+import com.tallertech.app.data.repository.ServiceOrderRepository;
+import com.tallertech.app.data.repository.ResultCallback;
 
 public class ClientDetailFragment extends Fragment {
 
@@ -38,6 +43,7 @@ public class ClientDetailFragment extends Fragment {
         ClientDetailFragment fragment = new ClientDetailFragment();
 
         Bundle args = new Bundle();
+        args.putString("id", client.getId());
 
         args.putString(ARG_INITIALS, client.getInitials());
         args.putString(ARG_NAME, client.getName());
@@ -143,11 +149,7 @@ public class ClientDetailFragment extends Fragment {
 
         EditClientFragment fragment =
                 EditClientFragment.newInstance(
-                        args.getString(ARG_NAME, ""),
-                        args.getString(ARG_PHONE, ""),
-                        args.getString(ARG_EMAIL, ""),
-                        args.getString(ARG_ADDRESS, ""),
-                        args.getString(ARG_NOTES, "")
+                        args.getString("id")
                 );
 
         requireActivity()
@@ -182,6 +184,48 @@ public class ClientDetailFragment extends Fragment {
         );
 
         startActivity(intent);
+    }
+
+    @Override public void onResume() {
+        super.onResume();
+        View view = getView();
+        if (view == null) return;
+        ClientRepository repository = new ClientRepository(requireContext());
+        String id = requireArguments().getString("id");
+        repository.getById(id, new ResultCallback<ClientEntity>() {
+            @Override public void onResult(ClientEntity client) {
+                if (!isAdded() || getView() != view) return;
+                clientName = client.getName();
+                clientPhone = client.getPhone();
+                ((TextView) view.findViewById(R.id.tvDetailClientName)).setText(clientName);
+                ((TextView) view.findViewById(R.id.tvDetailClientInitials)).setText(
+                        clientName == null || clientName.isEmpty() ? "CL" : clientName.substring(0, 1).toUpperCase());
+                ((TextView) view.findViewById(R.id.tvDetailClientContact)).setText(clientPhone + " · " + client.getEmail());
+            }
+            @Override public void onError(Exception e) {
+                if (!isAdded() || getView() != view) return;
+                Toast.makeText(requireContext(), "Error al cargar cliente", Toast.LENGTH_SHORT).show();
+            }
+        });
+        repository.countEquipment(id, new ResultCallback<Integer>() {
+            @Override public void onResult(Integer count) {
+                if (getView() != view) return;
+                ((TextView) view.findViewById(R.id.tvDetailClientEquipment)).setText(count + (count == 1 ? " equipo" : " equipos"));
+            }
+            @Override public void onError(Exception e) {
+                if (getView() == view) ((TextView) view.findViewById(R.id.tvDetailClientEquipment)).setText("—");
+            }
+        });
+        new ServiceOrderRepository(requireContext()).getLatestByClient(id, new ResultCallback<OrderDetails>() {
+            @Override public void onResult(OrderDetails result) {
+                if (getView() != view) return;
+                ((TextView) view.findViewById(R.id.tvClientRecentOrder)).setText(result == null ? "Sin órdenes" : result.order.getCode());
+                ((TextView) view.findViewById(R.id.tvClientRecentEquipment)).setText(result == null ? "" : result.equipmentName + " · " + result.order.getStatus());
+            }
+            @Override public void onError(Exception e) {
+                if (getView() == view) ((TextView) view.findViewById(R.id.tvClientRecentOrder)).setText("Error al cargar actividad");
+            }
+        });
     }
 
     private void abrirNuevaOrden() {

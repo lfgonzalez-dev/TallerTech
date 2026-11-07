@@ -1,6 +1,10 @@
 package com.tallertech.app.ui.equipment;
 
 public class EquipmentUiModel {
+    private final String id;
+    private final String clientId;
+    public String getId() { return id; }
+    public String getClientId() { return clientId; }
 
     private final String type;
     private final String brand;
@@ -10,8 +14,10 @@ public class EquipmentUiModel {
     private final String client;
     private final String status;
 
-    // Modelo temporal utilizado mientras construimos el frontend.
+    // Conserva los IDs de Room para navegar sin depender del nombre.
     public EquipmentUiModel(
+            String id,
+            String clientId,
             String type,
             String brand,
             String model,
@@ -20,6 +26,8 @@ public class EquipmentUiModel {
             String client,
             String status) {
 
+        this.id = id;
+        this.clientId = clientId;
         this.type = type;
         this.brand = brand;
         this.model = model;

@@ -96,7 +96,8 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="42"
+                    android:id="@+id/tvTotalEquipment"
+                    android:text="—"
                     android:textColor="@color/tt_text_primary"
                     android:textSize="23sp"
                     android:textStyle="bold" />
@@ -134,7 +135,8 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="8"
+                    android:id="@+id/tvRepairEquipment"
+                    android:text="—"
                     android:textColor="@color/tt_text_primary"
                     android:textSize="23sp"
                     android:textStyle="bold" />
@@ -171,7 +173,8 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="6"
+                    android:id="@+id/tvReadyEquipment"
+                    android:text="—"
                     android:textColor="@color/tt_text_primary"
                     android:textSize="23sp"
                     android:textStyle="bold" />
