@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.HashMap;
 import com.tallertech.app.data.local.dao.EquipmentDao;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class ClientRepository {
 
@@ -22,7 +21,7 @@ public class ClientRepository {
 
     // Room no debe ejecutarse en el hilo principal.
     private final ExecutorService executor =
-            Executors.newSingleThreadExecutor();
+            RepositoryExecutor.IO;
 
     private final Handler mainHandler =
             new Handler(Looper.getMainLooper());
@@ -100,6 +99,30 @@ public class ClientRepository {
     public interface ClientsWithCountsCallback {
         void onResult(List<ClientEntity> clients, Map<String, Integer> counts);
         void onError(Exception e);
+    }
+
+    public void getById(String id, ResultCallback<ClientEntity> callback) {
+        RepositoryExecutor.run(() -> {
+            ClientEntity client = clientDao.getById(id);
+            if (client == null) throw new IllegalArgumentException("El cliente no existe");
+            return client;
+        }, callback);
+    }
+
+    public void countEquipment(String id, ResultCallback<Integer> callback) {
+        RepositoryExecutor.run(() -> equipmentDao.countByClientId(id), callback);
+    }
+
+    public void update(ClientEntity client, ResultCallback<Void> callback) {
+        RepositoryExecutor.run(() -> {
+            if (clientDao.getById(client.getId()) == null) {
+                throw new IllegalArgumentException("El cliente no existe");
+            }
+            client.setUpdatedAt(System.currentTimeMillis());
+            client.setSyncStatus("PENDING");
+            clientDao.update(client);
+            return null;
+        }, callback);
     }
 
     public interface OperationCallback {

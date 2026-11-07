@@ -42,4 +42,10 @@ public interface EquipmentDao {
 
     @Query("SELECT COUNT(*) FROM equipment")
     int count();
+
+    @Query("SELECT e.*, c.name AS clientName, COALESCE((SELECT o.status FROM service_orders o " +
+            "WHERE o.equipmentId = e.id ORDER BY CASE WHEN o.status != 'Completado' THEN 0 ELSE 1 END, " +
+            "o.entryDate DESC, o.rowid DESC LIMIT 1), 'Registrado') AS orderStatus " +
+            "FROM equipment e JOIN clients c ON c.id = e.clientId ORDER BY e.brand ASC, e.model ASC")
+    List<com.tallertech.app.data.local.EquipmentDetails> getAllDetails();
 }

@@ -15,6 +15,10 @@ import com.google.android.material.chip.Chip;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.tallertech.app.R;
+import com.tallertech.app.data.local.OrderDetails;
+import com.tallertech.app.data.repository.ServiceOrderRepository;
+import com.tallertech.app.data.repository.ResultCallback;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -115,7 +119,7 @@ public class OrdersFragment extends Fragment {
     private void configurarRecyclerView() {
 
         List<OrderUiModel> orders =
-                crearOrdenesPrueba();
+                new ArrayList<>();
 
         rvOrders.setLayoutManager(
                 new LinearLayoutManager(
@@ -134,63 +138,28 @@ public class OrdersFragment extends Fragment {
         );
     }
 
-    private List<OrderUiModel> crearOrdenesPrueba() {
-
-        List<OrderUiModel> orders =
-                new ArrayList<>();
-
-        // Datos temporales mientras desarrollamos el frontend.
-        orders.add(new OrderUiModel(
-                "ORD-0241",
-                "María López",
-                "Dell Inspiron 15",
-                "No enciende después de una subida de voltaje.",
-                "12 sep 2026",
-                "Téc. Carlos Reyes",
-                "En reparación"
-        ));
-
-        orders.add(new OrderUiModel(
-                "ORD-0242",
-                "Carlos Méndez",
-                "Samsung Galaxy A54",
-                "Pantalla quebrada y fallas táctiles.",
-                "15 sep 2026",
-                "Téc. Andrea Martínez",
-                "Diagnóstico"
-        ));
-
-        orders.add(new OrderUiModel(
-                "ORD-0243",
-                "Roberto Díaz",
-                "HP 240 G8",
-                "El equipo se apaga después de algunos minutos.",
-                "17 sep 2026",
-                "Sin asignar",
-                "Pendiente"
-        ));
-
-        orders.add(new OrderUiModel(
-                "ORD-0244",
-                "Ana Torres",
-                "Lenovo IdeaPad 3",
-                "No reconoce el cargador.",
-                "18 sep 2026",
-                "Téc. Carlos Reyes",
-                "Diagnóstico"
-        ));
-
-        orders.add(new OrderUiModel(
-                "ORD-0245",
-                "Sofía Guzmán",
-                "HP ProDesk 400",
-                "Mantenimiento preventivo general.",
-                "19 sep 2026",
-                "Téc. Andrea Martínez",
-                "En reparación"
-        ));
-
-        return orders;
+    @Override public void onResume() {
+        super.onResume();
+        View view = getView();
+        new ServiceOrderRepository(requireContext()).getAll(new ResultCallback<List<OrderDetails>>() {
+            @Override public void onResult(List<OrderDetails> orders) {
+                if (!isAdded() || getView() != view || view == null) return;
+                List<OrderUiModel> items = new ArrayList<>();
+                for (OrderDetails order : orders) items.add(OrderUiModel.fromDetails(order));
+                orderAdapter.setOrders(items);
+                TextInputEditText search = view.findViewById(R.id.etSearchOrder);
+                orderAdapter.filtrarTexto(search.getText().toString());
+                com.google.android.material.chip.ChipGroup group = view.findViewById(R.id.chipGroupOrders);
+                int selected = group.getCheckedChipId();
+                orderAdapter.filtrarEstado(selected == R.id.chipPendingOrders ? "Pendiente" :
+                        selected == R.id.chipDiagnosisOrders ? "Diagnóstico" :
+                        selected == R.id.chipRepairOrders ? "En reparación" : "Todas");
+            }
+            @Override public void onError(Exception e) {
+                if (!isAdded() || getView() != view || view == null) return;
+                Toast.makeText(requireContext(), "Error al cargar órdenes", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void abrirNuevaOrden() {

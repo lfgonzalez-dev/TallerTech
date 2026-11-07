@@ -123,7 +123,7 @@ public class RegisterEquipmentFragment extends Fragment {
         @NonNull
         @Override
         public String toString() {
-            return client.getName();
+            return client.getName() + " · " + client.getPhone();
         }
     }
 
@@ -141,7 +141,7 @@ public class RegisterEquipmentFragment extends Fragment {
                 etClient.setAdapter(adapter);
                 etClient.setOnItemClickListener((parent, view, position, id) -> {
                     selectedClient = ((ClientOption) parent.getItemAtPosition(position)).client;
-                    etClient.setText(selectedClient.getName(), false);
+                    etClient.setText(new ClientOption(selectedClient).toString(), false);
                     tilClient.setError(null);
                 });
                 etClient.setEnabled(!clients.isEmpty());
@@ -173,7 +173,7 @@ public class RegisterEquipmentFragment extends Fragment {
 
         boolean formularioValido = true;
 
-        if (selectedClient == null || !client.equals(selectedClient.getName())) {
+        if (selectedClient == null || !client.equals(new ClientOption(selectedClient).toString())) {
             tilClient.setError("Selecciona un cliente");
             formularioValido = false;
         }

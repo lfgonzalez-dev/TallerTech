@@ -14,7 +14,7 @@ import java.util.List;
 @Dao
 public interface ServiceOrderDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     void insert(ServiceOrderEntity order);
 
     @Update
@@ -60,4 +60,45 @@ public interface ServiceOrderDao {
 
     @Query("SELECT COUNT(*) FROM service_orders")
     int count();
+
+    @Query("SELECT o.*, c.name AS clientName, e.brand || ' ' || e.model AS equipmentName " +
+            "FROM service_orders o JOIN clients c ON c.id = o.clientId " +
+            "JOIN equipment e ON e.id = o.equipmentId ORDER BY o.entryDate DESC, o.rowid DESC")
+    List<com.tallertech.app.data.local.OrderDetails> getAllDetails();
+
+    @Query("SELECT o.*, c.name AS clientName, e.brand || ' ' || e.model AS equipmentName " +
+            "FROM service_orders o JOIN clients c ON c.id = o.clientId " +
+            "JOIN equipment e ON e.id = o.equipmentId WHERE o.id = :id")
+    com.tallertech.app.data.local.OrderDetails getDetails(String id);
+
+    @Query("SELECT o.*, c.name AS clientName, e.brand || ' ' || e.model AS equipmentName " +
+            "FROM service_orders o JOIN clients c ON c.id = o.clientId " +
+            "JOIN equipment e ON e.id = o.equipmentId " +
+            "ORDER BY o.entryDate DESC, o.rowid DESC LIMIT 1")
+    com.tallertech.app.data.local.OrderDetails getLatestDetails();
+
+    @Query("SELECT o.*, c.name AS clientName, e.brand || ' ' || e.model AS equipmentName " +
+            "FROM service_orders o JOIN clients c ON c.id = o.clientId " +
+            "JOIN equipment e ON e.id = o.equipmentId WHERE o.clientId = :clientId " +
+            "ORDER BY o.entryDate DESC, o.rowid DESC LIMIT 1")
+    com.tallertech.app.data.local.OrderDetails getLatestByClient(String clientId);
+
+    @Query("SELECT COUNT(*) FROM service_orders WHERE status != 'Completado'")
+    int countActive();
+
+    @Query("SELECT COUNT(DISTINCT equipmentId) FROM service_orders WHERE status != 'Completado'")
+    int countActiveEquipment();
+
+    @Query("SELECT COUNT(DISTINCT equipmentId) FROM service_orders WHERE status = 'En reparación'")
+    int countRepairEquipment();
+
+    // Un equipo está listo si tiene servicios completados y ninguno activo.
+    @Query("SELECT COUNT(DISTINCT o.equipmentId) FROM service_orders o " +
+            "WHERE o.status = 'Completado' AND NOT EXISTS " +
+            "(SELECT 1 FROM service_orders a WHERE a.equipmentId = o.equipmentId AND a.status != 'Completado')")
+    int countReadyEquipment();
+
+    @Query("SELECT status FROM service_orders WHERE equipmentId = :equipmentId " +
+            "ORDER BY CASE WHEN status != 'Completado' THEN 0 ELSE 1 END, entryDate DESC, rowid DESC LIMIT 1")
+    String getEquipmentStatus(String equipmentId);
 }

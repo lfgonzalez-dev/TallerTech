@@ -13,8 +13,13 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.tallertech.app.R;
+import com.tallertech.app.data.local.entity.RepairEntity;
+import com.tallertech.app.data.repository.RepairRepository;
+import com.tallertech.app.data.repository.ResultCallback;
 
 public class RepairFragment extends Fragment {
+    private MaterialButton btnSave;
+    private boolean loaded, saving;
 
     private static final String ARG_ORDER_CODE = "orderCode";
     private static final String ARG_EQUIPMENT = "equipment";
@@ -29,6 +34,7 @@ public class RepairFragment extends Fragment {
     }
 
     public static RepairFragment newInstance(
+            String orderId,
             String orderCode,
             String equipment) {
 
@@ -36,6 +42,7 @@ public class RepairFragment extends Fragment {
                 new RepairFragment();
 
         Bundle args = new Bundle();
+        args.putString("orderId", orderId);
 
         args.putString(ARG_ORDER_CODE, orderCode);
         args.putString(ARG_EQUIPMENT, equipment);
@@ -70,13 +77,38 @@ public class RepairFragment extends Fragment {
         etObservations =
                 view.findViewById(R.id.etRepairObservations);
 
-        MaterialButton btnSave =
+        btnSave =
                 view.findViewById(R.id.btnSaveRepair);
 
         MaterialButton btnCancel =
                 view.findViewById(R.id.btnCancelRepair);
 
         Bundle args = getArguments();
+        loaded = false;
+        saving = false;
+        btnSave.setEnabled(false);
+        etRepair.setEnabled(false);
+        etParts.setEnabled(false);
+        etObservations.setEnabled(false);
+        new RepairRepository(requireContext()).getByOrder(requireArguments().getString("orderId"), new ResultCallback<RepairEntity>() {
+            @Override public void onResult(RepairEntity result) {
+                if (!isAdded() || getView() != view) return;
+                if (result != null && savedInstanceState == null) {
+                    etRepair.setText(result.getRepair());
+                    etParts.setText(result.getParts());
+                    etObservations.setText(result.getObservations());
+                }
+                loaded = true;
+                btnSave.setEnabled(true);
+                etRepair.setEnabled(true);
+                etParts.setEnabled(true);
+                etObservations.setEnabled(true);
+            }
+            @Override public void onError(Exception e) {
+                if (!isAdded() || getView() != view) return;
+                Toast.makeText(requireContext(), "Error al cargar reparación", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         if (args != null) {
 
@@ -101,6 +133,7 @@ public class RepairFragment extends Fragment {
     }
 
     private void validarFormulario() {
+        if (!loaded || saving) return;
 
         String repair =
                 etRepair.getText().toString().trim();
@@ -116,15 +149,22 @@ public class RepairFragment extends Fragment {
             return;
         }
 
-        // Guardado temporal mientras desarrollamos el frontend.
-        Toast.makeText(
-                requireContext(),
-                "Reparación registrada correctamente",
-                Toast.LENGTH_SHORT
-        ).show();
-
-        requireActivity()
-                .getSupportFragmentManager()
-                .popBackStack();
+        saving = true;
+        btnSave.setEnabled(false);
+        View view = getView();
+        new RepairRepository(requireContext()).save(requireArguments().getString("orderId"), repair,
+                etParts.getText().toString().trim(), etObservations.getText().toString().trim(), new ResultCallback<Void>() {
+                    @Override public void onResult(Void result) {
+                        if (!isAdded() || getView() != view) return;
+                        Toast.makeText(requireContext(), "Reparación registrada correctamente", Toast.LENGTH_SHORT).show();
+                        getParentFragmentManager().popBackStack();
+                    }
+                    @Override public void onError(Exception e) {
+                        if (!isAdded() || getView() != view) return;
+                        saving = false;
+                        btnSave.setEnabled(true);
+                        Toast.makeText(requireContext(), "Error al guardar reparación", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }

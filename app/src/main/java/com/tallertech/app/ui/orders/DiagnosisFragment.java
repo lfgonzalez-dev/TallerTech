@@ -13,8 +13,13 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.tallertech.app.R;
+import com.tallertech.app.data.local.entity.DiagnosisEntity;
+import com.tallertech.app.data.repository.DiagnosisRepository;
+import com.tallertech.app.data.repository.ResultCallback;
 
 public class DiagnosisFragment extends Fragment {
+    private MaterialButton btnSave;
+    private boolean loaded, saving;
 
     private static final String ARG_ORDER_CODE = "orderCode";
     private static final String ARG_EQUIPMENT = "equipment";
@@ -29,6 +34,7 @@ public class DiagnosisFragment extends Fragment {
     }
 
     public static DiagnosisFragment newInstance(
+            String orderId,
             String orderCode,
             String equipment) {
 
@@ -36,6 +42,7 @@ public class DiagnosisFragment extends Fragment {
                 new DiagnosisFragment();
 
         Bundle args = new Bundle();
+        args.putString("orderId", orderId);
 
         args.putString(ARG_ORDER_CODE, orderCode);
         args.putString(ARG_EQUIPMENT, equipment);
@@ -70,13 +77,38 @@ public class DiagnosisFragment extends Fragment {
         etRecommendations =
                 view.findViewById(R.id.etDiagnosisRecommendations);
 
-        MaterialButton btnSave =
+        btnSave =
                 view.findViewById(R.id.btnSaveDiagnosis);
 
         MaterialButton btnCancel =
                 view.findViewById(R.id.btnCancelDiagnosis);
 
         Bundle args = getArguments();
+        loaded = false;
+        saving = false;
+        btnSave.setEnabled(false);
+        etDiagnosis.setEnabled(false);
+        etObservations.setEnabled(false);
+        etRecommendations.setEnabled(false);
+        new DiagnosisRepository(requireContext()).getByOrder(requireArguments().getString("orderId"), new ResultCallback<DiagnosisEntity>() {
+            @Override public void onResult(DiagnosisEntity result) {
+                if (!isAdded() || getView() != view) return;
+                if (result != null && savedInstanceState == null) {
+                    etDiagnosis.setText(result.getDiagnosis());
+                    etObservations.setText(result.getObservations());
+                    etRecommendations.setText(result.getRecommendations());
+                }
+                loaded = true;
+                btnSave.setEnabled(true);
+                etDiagnosis.setEnabled(true);
+                etObservations.setEnabled(true);
+                etRecommendations.setEnabled(true);
+            }
+            @Override public void onError(Exception e) {
+                if (!isAdded() || getView() != view) return;
+                Toast.makeText(requireContext(), "Error al cargar diagnóstico", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         if (args != null) {
 
@@ -101,6 +133,7 @@ public class DiagnosisFragment extends Fragment {
     }
 
     private void validarFormulario() {
+        if (!loaded || saving) return;
 
         String diagnosis =
                 etDiagnosis.getText().toString().trim();
@@ -116,15 +149,22 @@ public class DiagnosisFragment extends Fragment {
             return;
         }
 
-        // Por ahora simulamos el guardado.
-        Toast.makeText(
-                requireContext(),
-                "Diagnóstico registrado correctamente",
-                Toast.LENGTH_SHORT
-        ).show();
-
-        requireActivity()
-                .getSupportFragmentManager()
-                .popBackStack();
+        saving = true;
+        btnSave.setEnabled(false);
+        View view = getView();
+        new DiagnosisRepository(requireContext()).save(requireArguments().getString("orderId"), diagnosis,
+                etObservations.getText().toString().trim(), etRecommendations.getText().toString().trim(), new ResultCallback<Void>() {
+                    @Override public void onResult(Void result) {
+                        if (!isAdded() || getView() != view) return;
+                        Toast.makeText(requireContext(), "Diagnóstico registrado correctamente", Toast.LENGTH_SHORT).show();
+                        getParentFragmentManager().popBackStack();
+                    }
+                    @Override public void onError(Exception e) {
+                        if (!isAdded() || getView() != view) return;
+                        saving = false;
+                        btnSave.setEnabled(true);
+                        Toast.makeText(requireContext(), "Error al guardar diagnóstico", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }

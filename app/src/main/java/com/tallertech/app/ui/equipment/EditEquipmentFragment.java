@@ -16,15 +16,25 @@ import com.tallertech.app.R;
 
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import com.tallertech.app.data.local.entity.ClientEntity;
+import com.tallertech.app.data.local.entity.EquipmentEntity;
+import com.tallertech.app.data.repository.ClientRepository;
+import com.tallertech.app.data.repository.EquipmentRepository;
+import com.tallertech.app.data.repository.ResultCallback;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EditEquipmentFragment extends Fragment {
+    private EquipmentEntity equipment;
+    private ClientEntity selectedClient;
+    private MaterialButton btnSave;
+    private boolean saving;
 
-    private static final String ARG_CLIENT = "client";
-    private static final String ARG_TYPE = "type";
-    private static final String ARG_BRAND = "brand";
-    private static final String ARG_MODEL = "model";
-    private static final String ARG_SERIAL = "serial";
-    private static final String ARG_DESCRIPTION = "description";
+    private static class ClientOption {
+        final ClientEntity client;
+        ClientOption(ClientEntity client) { this.client = client; }
+        @NonNull @Override public String toString() { return client.getName() + " · " + client.getPhone(); }
+    }
 
     private TextInputLayout tilClient;
     private TextInputLayout tilType;
@@ -46,24 +56,14 @@ public class EditEquipmentFragment extends Fragment {
     }
 
     public static EditEquipmentFragment newInstance(
-            String client,
-            String type,
-            String brand,
-            String model,
-            String serial,
-            String description) {
+            String id) {
 
         EditEquipmentFragment fragment =
                 new EditEquipmentFragment();
 
         Bundle args = new Bundle();
 
-        args.putString(ARG_CLIENT, client);
-        args.putString(ARG_TYPE, type);
-        args.putString(ARG_BRAND, brand);
-        args.putString(ARG_MODEL, model);
-        args.putString(ARG_SERIAL, serial);
-        args.putString(ARG_DESCRIPTION, description);
+        args.putString("id", id);
 
         fragment.setArguments(args);
 
@@ -114,12 +114,16 @@ public class EditEquipmentFragment extends Fragment {
         etDescription =
                 view.findViewById(R.id.etEquipmentDescription);
 
-        MaterialButton btnSave =
+        btnSave =
                 view.findViewById(R.id.btnSaveEquipment);
 
         MaterialButton btnCancel =
                 view.findViewById(R.id.btnCancelEquipment);
 
+        equipment = null;
+        selectedClient = null;
+        saving = false;
+        btnSave.setEnabled(false);
         configurarDropdowns();
 
         // Adaptamos el formulario al modo edición.
@@ -151,35 +155,43 @@ public class EditEquipmentFragment extends Fragment {
             return;
         }
 
-        // Precargar valores de los dropdowns sin activar su filtro.
-        etClient.setText(
-                args.getString(ARG_CLIENT, ""),
-                false
-        );
-
-        etType.setText(
-                args.getString(ARG_TYPE, ""),
-                false
-        );
-
-        etBrand.setText(
-                args.getString(ARG_BRAND, "")
-        );
-
-        etModel.setText(
-                args.getString(ARG_MODEL, "")
-        );
-
-        etSerial.setText(
-                args.getString(ARG_SERIAL, "")
-        );
-
-        etDescription.setText(
-                args.getString(ARG_DESCRIPTION, "")
-        );
+        View currentView = getView();
+        etClient.setEnabled(false);
+        new EquipmentRepository(requireContext()).getById(args.getString("id"), new ResultCallback<EquipmentEntity>() {
+            @Override public void onResult(EquipmentEntity result) {
+                if (!isAdded() || getView() != currentView) return;
+                equipment = result;
+                etType.setText(result.getType(), false);
+                etBrand.setText(result.getBrand());
+                etModel.setText(result.getModel());
+                etSerial.setText(result.getSerial());
+                etDescription.setText(result.getDescription());
+                new ClientRepository(requireContext()).getAll(new ClientRepository.ClientsCallback() {
+                    @Override public void onResult(List<ClientEntity> clients) {
+                        if (!isAdded() || getView() != currentView) return;
+                        List<ClientOption> options = new ArrayList<>();
+                        for (ClientEntity client : clients) {
+                            options.add(new ClientOption(client));
+                            if (client.getId().equals(equipment.getClientId())) selectedClient = client;
+                        }
+                        etClient.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, options));
+                        if (selectedClient != null) etClient.setText(new ClientOption(selectedClient).toString(), false);
+                        etClient.setOnItemClickListener((parent, v, position, id) -> {
+                            selectedClient = ((ClientOption) parent.getItemAtPosition(position)).client;
+                            tilClient.setError(null);
+                        });
+                        etClient.setEnabled(true);
+                        btnSave.setEnabled(selectedClient != null);
+                    }
+                    @Override public void onError(Exception e) { mostrarError(currentView); }
+                });
+            }
+            @Override public void onError(Exception e) { mostrarError(currentView); }
+        });
     }
 
     private void validarFormulario() {
+        if (equipment == null || saving) return;
 
         String client =
                 etClient.getText().toString().trim();
@@ -205,7 +217,7 @@ public class EditEquipmentFragment extends Fragment {
 
         boolean formularioValido = true;
 
-        if (client.isEmpty()) {
+        if (selectedClient == null || !client.equals(new ClientOption(selectedClient).toString())) {
 
             tilClient.setError(
                     "Ingresa o selecciona un cliente"
@@ -252,24 +264,31 @@ public class EditEquipmentFragment extends Fragment {
 
         if (formularioValido) {
 
-            // El guardado real se implementará con la capa de datos.
-            Toast.makeText(
-                    requireContext(),
-                    "Datos modificados correctamente",
-                    Toast.LENGTH_SHORT
-            ).show();
+            equipment.setClientId(selectedClient.getId());
+            equipment.setType(type);
+            equipment.setBrand(brand);
+            equipment.setModel(model);
+            equipment.setSerial(serial);
+            equipment.setDescription(etDescription.getText().toString().trim());
+            saving = true;
+            btnSave.setEnabled(false);
+            View currentView = getView();
+            new EquipmentRepository(requireContext()).update(equipment, new ResultCallback<Void>() {
+                @Override public void onResult(Void result) {
+                    if (!isAdded() || getView() != currentView) return;
+                    Toast.makeText(requireContext(), "Datos modificados correctamente", Toast.LENGTH_SHORT).show();
+                    getParentFragmentManager().popBackStack();
+                }
+                @Override public void onError(Exception e) {
+                    if (!isAdded() || getView() != currentView) return;
+                    saving = false;
+                    btnSave.setEnabled(true);
+                    Toast.makeText(requireContext(), "Error al guardar: verifica la serie única y el cliente", Toast.LENGTH_LONG).show();
+                }
+            });
         }
     }
     private void configurarDropdowns() {
-
-        // Datos ficticios durante el desarrollo del frontend.
-        String[] clients = {
-                "María López",
-                "Carlos Méndez",
-                "Ana Torres",
-                "Roberto Díaz",
-                "Sofía Guzmán"
-        };
 
         String[] equipmentTypes = {
                 "Laptop",
@@ -281,13 +300,6 @@ public class EditEquipmentFragment extends Fragment {
                 "Otro"
         };
 
-        ArrayAdapter<String> clientAdapter =
-                new ArrayAdapter<>(
-                        requireContext(),
-                        android.R.layout.simple_dropdown_item_1line,
-                        clients
-                );
-
         ArrayAdapter<String> typeAdapter =
                 new ArrayAdapter<>(
                         requireContext(),
@@ -295,7 +307,11 @@ public class EditEquipmentFragment extends Fragment {
                         equipmentTypes
                 );
 
-        etClient.setAdapter(clientAdapter);
         etType.setAdapter(typeAdapter);
+    }
+
+    private void mostrarError(View view) {
+        if (!isAdded() || getView() != view) return;
+        Toast.makeText(requireContext(), "Error al cargar equipo o clientes", Toast.LENGTH_SHORT).show();
     }
 }

@@ -21,6 +21,9 @@ import com.tallertech.app.data.repository.ClientRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import android.widget.TextView;
+import com.tallertech.app.data.repository.StatisticsRepository;
+import com.tallertech.app.data.repository.ResultCallback;
 
 public class ClientsFragment extends Fragment {
 
@@ -97,6 +100,17 @@ public class ClientsFragment extends Fragment {
 
         // Recargar después de regresar de Registrar cliente.
         cargarClientes();
+        View view = getView();
+        new StatisticsRepository(requireContext()).load(new ResultCallback<StatisticsRepository.Statistics>() {
+            @Override public void onResult(StatisticsRepository.Statistics stats) {
+                if (view == null || getView() != view) return;
+                ((TextView) view.findViewById(R.id.tvClientCount)).setText(String.valueOf(stats.clients));
+            }
+            @Override public void onError(Exception e) {
+                if (!isAdded() || view == null || getView() != view) return;
+                Toast.makeText(requireContext(), "Error al cargar contador de clientes", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void configurarRecyclerView() {
@@ -118,6 +132,7 @@ public class ClientsFragment extends Fragment {
     }
 
     private void cargarClientes() {
+        View currentView = getView();
 
         clientRepository.getAllWithEquipmentCounts(
                 new ClientRepository.ClientsWithCountsCallback() {
@@ -125,7 +140,7 @@ public class ClientsFragment extends Fragment {
                     @Override
                     public void onResult(
                             List<ClientEntity> clients, Map<String, Integer> counts) {
-                        if (!isAdded() || getView() == null) return;
+                        if (!isAdded() || currentView == null || getView() != currentView) return;
 
                         List<ClientUiModel> uiClients =
                                 new ArrayList<>();
@@ -140,11 +155,13 @@ public class ClientsFragment extends Fragment {
                         clientAdapter.setClients(
                                 uiClients
                         );
+                        TextInputEditText search = getView().findViewById(R.id.etSearchClient);
+                        clientAdapter.filtrar(search.getText().toString());
                     }
 
                     @Override
                     public void onError(Exception e) {
-                        if (!isAdded() || getView() == null) return;
+                        if (!isAdded() || currentView == null || getView() != currentView) return;
 
                         Toast.makeText(
                                 requireContext(),
@@ -165,6 +182,7 @@ public class ClientsFragment extends Fragment {
                 );
 
         return new ClientUiModel(
+                client.getId(),
                 initials,
                 client.getName(),
                 client.getPhone(),

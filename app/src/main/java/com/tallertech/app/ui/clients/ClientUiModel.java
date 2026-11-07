@@ -1,6 +1,8 @@
 package com.tallertech.app.ui.clients;
 
 public class ClientUiModel {
+    private final String id;
+    public String getId() { return id; }
 
     private final String initials;
     private final String name;
@@ -10,8 +12,9 @@ public class ClientUiModel {
     private final String notes;
     private final String equipment;
 
-    // Modelo temporal para representar clientes en el frontend.
+    // Conserva el identificador local para detalle y edición.
     public ClientUiModel(
+            String id,
             String initials,
             String name,
             String phone,
@@ -20,6 +23,7 @@ public class ClientUiModel {
             String notes,
             String equipment) {
 
+        this.id = id;
         this.initials = initials;
         this.name = name;
         this.phone = phone;

@@ -6,11 +6,8 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Toast;
 import com.tallertech.app.data.repository.EquipmentRepository;
-import com.tallertech.app.data.repository.ClientRepository;
 import com.tallertech.app.data.local.entity.EquipmentEntity;
-import com.tallertech.app.data.local.entity.ClientEntity;
-import java.util.Map;
-import java.util.HashMap;
+import com.tallertech.app.data.local.EquipmentDetails;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,6 +21,9 @@ import com.tallertech.app.R;
 
 import java.util.ArrayList;
 import java.util.List;
+import android.widget.TextView;
+import com.tallertech.app.data.repository.StatisticsRepository;
+import com.tallertech.app.data.repository.ResultCallback;
 
 public class EquipmentFragment extends Fragment {
 
@@ -119,28 +119,27 @@ public class EquipmentFragment extends Fragment {
     public void onResume() {
         super.onResume();
         View currentView = getView();
-        new ClientRepository(requireContext()).getAll(new ClientRepository.ClientsCallback() {
+        new StatisticsRepository(requireContext()).load(new ResultCallback<StatisticsRepository.Statistics>() {
+            @Override public void onResult(StatisticsRepository.Statistics stats) {
+                if (currentView == null || getView() != currentView) return;
+                ((TextView) currentView.findViewById(R.id.tvTotalEquipment)).setText(String.valueOf(stats.equipment));
+                ((TextView) currentView.findViewById(R.id.tvRepairEquipment)).setText(String.valueOf(stats.repairEquipment));
+                ((TextView) currentView.findViewById(R.id.tvReadyEquipment)).setText(String.valueOf(stats.readyEquipment));
+            }
+            @Override public void onError(Exception e) { mostrarErrorCarga(currentView); }
+        });
+        new EquipmentRepository(requireContext()).getAllDetails(new ResultCallback<List<EquipmentDetails>>() {
             @Override
-            public void onResult(List<ClientEntity> clients) {
+            public void onResult(List<EquipmentDetails> equipment) {
                 if (!isAdded() || getView() != currentView || currentView == null) return;
-                Map<String, String> names = new HashMap<>();
-                for (ClientEntity client : clients) names.put(client.getId(), client.getName());
-                new EquipmentRepository(requireContext()).getAll(new EquipmentRepository.EquipmentCallback() {
-                    @Override
-                    public void onResult(List<EquipmentEntity> equipment) {
-                        if (!isAdded() || getView() != currentView || currentView == null) return;
-                        List<EquipmentUiModel> items = new ArrayList<>();
-                        for (EquipmentEntity item : equipment) {
-                            items.add(new EquipmentUiModel(item.getType(), item.getBrand(),
-                                    item.getModel(), item.getSerial(), item.getDescription(),
-                                    names.getOrDefault(item.getClientId(), ""), "Registrado"));
-                        }
-                        equipmentAdapter.setEquipment(items);
-                        equipmentAdapter.filtrar(searchQuery);
-                    }
-                    @Override
-                    public void onError(Exception e) { mostrarErrorCarga(currentView); }
-                });
+                List<EquipmentUiModel> items = new ArrayList<>();
+                for (EquipmentDetails details : equipment) {
+                    EquipmentEntity item = details.equipment;
+                    items.add(new EquipmentUiModel(item.getId(), item.getClientId(), item.getType(), item.getBrand(),
+                            item.getModel(), item.getSerial(), item.getDescription(), details.clientName, details.orderStatus));
+                }
+                equipmentAdapter.setEquipment(items);
+                equipmentAdapter.filtrar(searchQuery);
             }
             @Override
             public void onError(Exception e) { mostrarErrorCarga(currentView); }

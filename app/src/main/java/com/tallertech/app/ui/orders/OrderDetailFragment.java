@@ -12,6 +12,9 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.tallertech.app.R;
+import com.tallertech.app.data.local.OrderDetails;
+import com.tallertech.app.data.repository.ServiceOrderRepository;
+import com.tallertech.app.data.repository.ResultCallback;
 
 public class OrderDetailFragment extends Fragment {
 
@@ -28,6 +31,8 @@ public class OrderDetailFragment extends Fragment {
     private String currentStatus;
     private String orderCode;
     private String equipment;
+    private boolean loaded;
+    private boolean saving;
 
     public OrderDetailFragment() {
         super(R.layout.fragment_order_detail);
@@ -40,6 +45,7 @@ public class OrderDetailFragment extends Fragment {
                 new OrderDetailFragment();
 
         Bundle args = new Bundle();
+        args.putString("id", order.getId());
 
         args.putString(ARG_CODE, order.getCode());
         args.putString(ARG_CLIENT, order.getClient());
@@ -60,6 +66,8 @@ public class OrderDetailFragment extends Fragment {
             @Nullable Bundle savedInstanceState) {
 
         super.onViewCreated(view, savedInstanceState);
+        loaded = false;
+        saving = false;
 
         TextView tvCode =
                 view.findViewById(R.id.tvDetailOrderCode);
@@ -160,6 +168,7 @@ public class OrderDetailFragment extends Fragment {
 
         DiagnosisFragment fragment =
                 DiagnosisFragment.newInstance(
+                        requireArguments().getString("id"),
                         orderCode,
                         equipment
                 );
@@ -179,6 +188,7 @@ public class OrderDetailFragment extends Fragment {
 
         RepairFragment fragment =
                 RepairFragment.newInstance(
+                        requireArguments().getString("id"),
                         orderCode,
                         equipment
                 );
@@ -195,6 +205,7 @@ public class OrderDetailFragment extends Fragment {
     }
 
     private void mostrarSelectorEstado() {
+        if (!loaded || saving) return;
 
         String[] states = {
                 "Pendiente",
@@ -226,19 +237,7 @@ public class OrderDetailFragment extends Fragment {
 
                             if (position >= 0) {
 
-                                currentStatus =
-                                        states[position];
-
-                                tvStatus.setText(
-                                        currentStatus
-                                );
-
-                                Toast.makeText(
-                                        requireContext(),
-                                        "Estado actualizado a "
-                                                + currentStatus,
-                                        Toast.LENGTH_SHORT
-                                ).show();
+                                guardarEstado(states[position]);
                             }
                         }
                 )
@@ -262,5 +261,62 @@ public class OrderDetailFragment extends Fragment {
         }
 
         return 0;
+    }
+
+    @Override public void onResume() {
+        super.onResume();
+        View view = getView();
+        if (view == null) return;
+        setActionsEnabled(view, false);
+        new ServiceOrderRepository(requireContext()).getById(requireArguments().getString("id"), new ResultCallback<OrderDetails>() {
+            @Override public void onResult(OrderDetails result) {
+                if (!isAdded() || getView() != view) return;
+                OrderUiModel order = OrderUiModel.fromDetails(result);
+                orderCode = order.getCode();
+                equipment = order.getEquipment();
+                currentStatus = order.getStatus();
+                ((TextView) view.findViewById(R.id.tvDetailOrderCode)).setText(orderCode);
+                ((TextView) view.findViewById(R.id.tvDetailOrderClient)).setText(order.getClient());
+                ((TextView) view.findViewById(R.id.tvDetailOrderEquipment)).setText(equipment);
+                ((TextView) view.findViewById(R.id.tvDetailOrderIssue)).setText(order.getIssue());
+                ((TextView) view.findViewById(R.id.tvDetailOrderDate)).setText(order.getDate());
+                ((TextView) view.findViewById(R.id.tvDetailOrderTechnician)).setText(order.getTechnician());
+                tvStatus.setText(currentStatus);
+                loaded = true;
+                setActionsEnabled(view, true);
+            }
+            @Override public void onError(Exception e) {
+                if (!isAdded() || getView() != view) return;
+                Toast.makeText(requireContext(), "Error al cargar orden", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void setActionsEnabled(View view, boolean enabled) {
+        view.findViewById(R.id.btnChangeOrderStatus).setEnabled(enabled);
+        view.findViewById(R.id.btnOrderDiagnosis).setEnabled(enabled);
+        view.findViewById(R.id.btnOrderRepair).setEnabled(enabled);
+    }
+
+    private void guardarEstado(String status) {
+        saving = true;
+        View view = getView();
+        setActionsEnabled(view, false);
+        new ServiceOrderRepository(requireContext()).updateStatus(requireArguments().getString("id"), status, new ResultCallback<Void>() {
+            @Override public void onResult(Void result) {
+                if (!isAdded() || getView() != view) return;
+                saving = false;
+                currentStatus = status;
+                tvStatus.setText(status);
+                setActionsEnabled(view, true);
+                Toast.makeText(requireContext(), "Estado actualizado a " + status, Toast.LENGTH_SHORT).show();
+            }
+            @Override public void onError(Exception e) {
+                if (!isAdded() || getView() != view) return;
+                saving = false;
+                setActionsEnabled(view, true);
+                Toast.makeText(requireContext(), "Error al cambiar estado", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

@@ -1,0 +1,38 @@
+package com.tallertech.app.data.repository;
+
+import android.content.Context;
+import com.tallertech.app.data.local.TallerTechDatabase;
+import com.tallertech.app.data.local.entity.DiagnosisEntity;
+import java.util.UUID;
+
+public class DiagnosisRepository {
+    private final TallerTechDatabase database;
+
+    public DiagnosisRepository(Context context) {
+        database = TallerTechDatabase.getInstance(context);
+    }
+
+    public void getByOrder(String orderId, ResultCallback<DiagnosisEntity> callback) {
+        RepositoryExecutor.run(() -> {
+            if (database.serviceOrderDao().getById(orderId) == null) {
+                throw new IllegalArgumentException("La orden no existe");
+            }
+            return database.diagnosisDao().getByOrder(orderId);
+        }, callback);
+    }
+
+    public void save(String orderId, String diagnosis, String observations,
+                     String recommendations, ResultCallback<Void> callback) {
+        RepositoryExecutor.run(() -> {
+            database.runInTransaction(() -> {
+                DiagnosisEntity existing = database.diagnosisDao().getByOrder(orderId);
+                DiagnosisEntity entity = new DiagnosisEntity(existing == null
+                        ? UUID.randomUUID().toString() : existing.getId(), orderId,
+                        diagnosis, observations, recommendations, System.currentTimeMillis(), "PENDING");
+                if (existing == null) database.diagnosisDao().insert(entity);
+                else database.diagnosisDao().update(entity);
+            });
+            return null;
+        }, callback);
+    }
+}

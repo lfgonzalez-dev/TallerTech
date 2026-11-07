@@ -31,6 +31,8 @@ public class RegisterClientFragment extends Fragment {
     private TextInputEditText etNotes;
 
     private ClientRepository clientRepository;
+    private MaterialButton btnSave;
+    private boolean saving;
 
     public RegisterClientFragment() {
         super(R.layout.fragment_register_client);
@@ -71,7 +73,8 @@ public class RegisterClientFragment extends Fragment {
         etNotes =
                 view.findViewById(R.id.etClientNotes);
 
-        MaterialButton btnSave =
+        saving = false;
+        btnSave =
                 view.findViewById(R.id.btnSaveClient);
 
         btnSave.setOnClickListener(v ->
@@ -80,6 +83,7 @@ public class RegisterClientFragment extends Fragment {
     }
 
     private void validarFormulario() {
+        if (saving) return;
 
         String name =
                 etName.getText().toString().trim();
@@ -171,12 +175,16 @@ public class RegisterClientFragment extends Fragment {
                         "PENDING"
                 );
 
+        saving = true;
+        btnSave.setEnabled(false);
+        View view = getView();
         clientRepository.insert(
                 client,
                 new ClientRepository.OperationCallback() {
 
                     @Override
                     public void onSuccess() {
+                        if (!isAdded() || getView() != view || view == null) return;
 
                         Toast.makeText(
                                 requireContext(),
@@ -192,6 +200,9 @@ public class RegisterClientFragment extends Fragment {
 
                     @Override
                     public void onError(Exception e) {
+                        if (!isAdded() || getView() != view || view == null) return;
+                        saving = false;
+                        btnSave.setEnabled(true);
 
                         Toast.makeText(
                                 requireContext(),
