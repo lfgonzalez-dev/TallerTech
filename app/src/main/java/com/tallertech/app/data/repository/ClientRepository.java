@@ -9,12 +9,16 @@ import com.tallertech.app.data.local.dao.ClientDao;
 import com.tallertech.app.data.local.entity.ClientEntity;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import com.tallertech.app.data.local.dao.EquipmentDao;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ClientRepository {
 
     private final ClientDao clientDao;
+    private final EquipmentDao equipmentDao;
 
     // Room no debe ejecutarse en el hilo principal.
     private final ExecutorService executor =
@@ -29,6 +33,7 @@ public class ClientRepository {
                 TallerTechDatabase.getInstance(context);
 
         clientDao = database.clientDao();
+        equipmentDao = database.equipmentDao();
     }
 
     public void insert(
@@ -75,6 +80,26 @@ public class ClientRepository {
                 );
             }
         });
+    }
+
+    public void getAllWithEquipmentCounts(ClientsWithCountsCallback callback) {
+        executor.execute(() -> {
+            try {
+                List<ClientEntity> clients = clientDao.getAll();
+                Map<String, Integer> counts = new HashMap<>();
+                for (ClientEntity client : clients) {
+                    counts.put(client.getId(), equipmentDao.countByClientId(client.getId()));
+                }
+                mainHandler.post(() -> callback.onResult(clients, counts));
+            } catch (Exception e) {
+                mainHandler.post(() -> callback.onError(e));
+            }
+        });
+    }
+
+    public interface ClientsWithCountsCallback {
+        void onResult(List<ClientEntity> clients, Map<String, Integer> counts);
+        void onError(Exception e);
     }
 
     public interface OperationCallback {

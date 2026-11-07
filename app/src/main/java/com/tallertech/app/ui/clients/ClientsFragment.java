@@ -20,6 +20,7 @@ import com.tallertech.app.data.repository.ClientRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ClientsFragment extends Fragment {
 
@@ -118,12 +119,13 @@ public class ClientsFragment extends Fragment {
 
     private void cargarClientes() {
 
-        clientRepository.getAll(
-                new ClientRepository.ClientsCallback() {
+        clientRepository.getAllWithEquipmentCounts(
+                new ClientRepository.ClientsWithCountsCallback() {
 
                     @Override
                     public void onResult(
-                            List<ClientEntity> clients) {
+                            List<ClientEntity> clients, Map<String, Integer> counts) {
+                        if (!isAdded() || getView() == null) return;
 
                         List<ClientUiModel> uiClients =
                                 new ArrayList<>();
@@ -131,7 +133,7 @@ public class ClientsFragment extends Fragment {
                         for (ClientEntity client : clients) {
 
                             uiClients.add(
-                                    convertirAUiModel(client)
+                                    convertirAUiModel(client, counts.get(client.getId()))
                             );
                         }
 
@@ -142,6 +144,7 @@ public class ClientsFragment extends Fragment {
 
                     @Override
                     public void onError(Exception e) {
+                        if (!isAdded() || getView() == null) return;
 
                         Toast.makeText(
                                 requireContext(),
@@ -154,7 +157,7 @@ public class ClientsFragment extends Fragment {
     }
 
     private ClientUiModel convertirAUiModel(
-            ClientEntity client) {
+            ClientEntity client, int count) {
 
         String initials =
                 obtenerIniciales(
@@ -168,7 +171,7 @@ public class ClientsFragment extends Fragment {
                 client.getEmail(),
                 client.getAddress(),
                 client.getNotes(),
-                "0 equipos"
+                count + (count == 1 ? " equipo" : " equipos")
         );
     }
 
