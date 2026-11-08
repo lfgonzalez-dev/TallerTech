@@ -1,0 +1,16 @@
+package com.tallertech.backend.dto;
+
+import com.tallertech.backend.service.Ids;
+import jakarta.validation.constraints.*;
+
+public record ClientRequest(
+        @Pattern(regexp = Ids.UUID_PATTERN) String id,
+        @NotBlank @Size(max = 255) String name,
+        @NotBlank @Size(max = 255) String phone,
+        @Email @Size(max = 255) String email,
+        @Size(max = 10000) String address,
+        @Size(max = 10000) String notes,
+        @PositiveOrZero Long updatedAt
+) {}
+
+

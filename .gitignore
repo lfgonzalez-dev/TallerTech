@@ -14,4 +14,7 @@
 .cxx
 local.properties
 .idea/
+/backend/target/
+/backend/.idea/
+/backend/*.iml
 
