@@ -1,10 +1,14 @@
 {
   "info": {
-    "name": "TallerTech - Etapa 1",
-    "description": "Ejecutar Clients → Equipment → Orders → Diagnoses → Repairs; Users es independiente. IDs fijos de ejemplo; repetir POST produce 409. PUT reemplaza los campos del recurso.",
+    "name": "TallerTech - Etapa 2",
+    "description": "Ejecutar auth/Login primero y configurar credenciales solo en entorno local. Después Clients → Equipment → Orders → Diagnoses → Repairs; Users es independiente. IDs fijos de ejemplo; repetir POST produce 409. PUT reemplaza los campos del recurso.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "auth": {"type":"bearer","bearer":[{"key":"token","value":"{{token}}","type":"string"}]},
   "variable": [
+    {"key":"token","value":""},
+    {"key":"authEmail","value":""},
+    {"key":"authPassword","value":""},
     {
       "key": "baseUrl",
       "value": "http://localhost:8080"
@@ -35,6 +39,55 @@
     }
   ],
   "item": [
+{
+    "name":  "auth",
+    "item":  [
+                 {
+                     "name":  "POST Login",
+                     "request":  {
+                                     "method":  "POST",
+                                     "auth":  {
+                                                  "type":  "noauth"
+                                              },
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "url":  "{{baseUrl}}/api/auth/login",
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"email\":\"{{authEmail}}\",\"password\":\"{{authPassword}}\"}",
+                                                  "options":  {
+                                                                  "raw":  {
+                                                                              "language":  "json"
+                                                                          }
+                                                              }
+                                              }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "pm.collectionVariables.set(\u0027token\u0027, \u0027\u0027);",
+                                                                   "if (pm.response.code === 200) { pm.collectionVariables.set(\u0027token\u0027, pm.response.json().token); }"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "GET Me",
+                     "request":  {
+                                     "method":  "GET",
+                                     "url":  "{{baseUrl}}/api/auth/me"
+                                 }
+                 }
+             ]
+},
     {
       "name": "clients",
       "item": [

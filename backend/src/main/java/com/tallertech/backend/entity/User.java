@@ -5,6 +5,13 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "users", uniqueConstraints = @UniqueConstraint(name = "uk_users_email", columnNames = "email"))
 public class User extends BaseEntity {
+    // Nullable for existing public user records; these cannot authenticate.
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @Column(name = "password_hash", length = 60)
+    private String passwordHash;
+
+    public String getPasswordHash() { return passwordHash; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
     @Column(name = "name", length = 255)
     private String name;
 

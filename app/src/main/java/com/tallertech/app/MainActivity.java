@@ -23,6 +23,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (com.tallertech.app.data.repository.AuthRepository.getCurrentUser() == null) {
+            startActivity(new android.content.Intent(this, LoginActivity.class)
+                    .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK));
+            finish();
+            return;
+        }
 
         EdgeToEdge.enable(this);
 
