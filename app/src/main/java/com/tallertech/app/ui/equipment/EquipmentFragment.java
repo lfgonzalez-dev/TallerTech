@@ -41,6 +41,7 @@ public class EquipmentFragment extends Fragment {
             @Nullable Bundle savedInstanceState) {
 
         super.onViewCreated(view, savedInstanceState);
+        com.tallertech.app.data.local.LocalDataObserver.observe(this, this::reloadLocalData);
 
         // Referencias a los componentes de la pantalla.
         rvEquipment =
@@ -115,9 +116,7 @@ public class EquipmentFragment extends Fragment {
         );
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
+    private void reloadLocalData() {
         View currentView = getView();
         new StatisticsRepository(requireContext()).load(new ResultCallback<StatisticsRepository.Statistics>() {
             @Override public void onResult(StatisticsRepository.Statistics stats) {

@@ -38,6 +38,7 @@ public class OrdersFragment extends Fragment {
             @Nullable Bundle savedInstanceState) {
 
         super.onViewCreated(view, savedInstanceState);
+        com.tallertech.app.data.local.LocalDataObserver.observe(this, this::reloadLocalData);
 
         // Referencias a la interfaz.
         rvOrders =
@@ -138,8 +139,7 @@ public class OrdersFragment extends Fragment {
         );
     }
 
-    @Override public void onResume() {
-        super.onResume();
+    private void reloadLocalData() {
         View view = getView();
         new ServiceOrderRepository(requireContext()).getAll(new ResultCallback<List<OrderDetails>>() {
             @Override public void onResult(List<OrderDetails> orders) {

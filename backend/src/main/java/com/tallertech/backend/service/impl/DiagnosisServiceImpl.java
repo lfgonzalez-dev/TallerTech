@@ -46,9 +46,10 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     @Override
     public DiagnosisResponse update(String id, DiagnosisRequest request) {
         Ids.checkUpdate(id, request.id());
-        var entity = require(id);
+        var entity = diagnosisRepository.findLockedById(id).orElseThrow(() -> new ResourceNotFoundException("Registro no encontrado"));
+        if (!LastWriteWins.accepts(request.updatedAt(), entity.getUpdatedAt())) return DiagnosisResponse.from(entity);
         apply(entity, request);
-        entity.setUpdatedAt(Math.max(System.currentTimeMillis(), entity.getUpdatedAt() + 1));
+        entity.setUpdatedAt(LastWriteWins.timestamp(request.updatedAt(), entity.getUpdatedAt()));
         return DiagnosisResponse.from(diagnosisRepository.saveAndFlush(entity));
     }
 

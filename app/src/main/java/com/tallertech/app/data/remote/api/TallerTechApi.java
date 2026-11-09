@@ -9,6 +9,10 @@ import com.tallertech.app.data.remote.dto.repairs.*;
 import com.tallertech.app.data.remote.dto.diagnoses.*;
 import com.tallertech.app.data.remote.dto.clients.*;
 public interface TallerTechApi {
+    @GET("api/users") Call<List<UserDto>> getUsers();
+    @GET("api/users/{id}") Call<UserDto> getUser(@Path("id") String id);
+    @POST("api/users") Call<UserDto> createUser(@Body UserRequest request);
+    @PUT("api/users/{id}") Call<UserDto> updateUser(@Path("id") String id, @Body UserRequest request);
     @GET("api/equipment/client/{id}") Call<List<EquipmentResponse>> equipmentByClient(@Path("id") String id);
     @GET("api/orders/client/{id}") Call<List<ServiceOrderResponse>> ordersByClient(@Path("id") String id);
     @GET("api/orders/equipment/{id}") Call<List<ServiceOrderResponse>> ordersByEquipment(@Path("id") String id);

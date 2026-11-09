@@ -13,9 +13,11 @@ import java.util.List;
 @Transactional
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder encoder;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder encoder) {
         this.userRepository = userRepository;
+        this.encoder = encoder;
     }
 
     @Override
@@ -32,6 +34,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse create(UserRequest request) {
+        if (request.password() == null) throw new IllegalArgumentException("La contraseña es obligatoria");
         String id = Ids.forCreate(request.id());
         if (userRepository.existsById(id)) throw new ConflictException("ID ya existe");
         var entity = new User();
@@ -61,7 +64,14 @@ public class UserServiceImpl implements UserService {
         }
         entity.setName(request.name());
         entity.setEmail(request.email());
-        entity.setRole(request.role());
+        String role = Roles.normalize(request.role());
+        if (!role.equals("ADMIN") && !role.equals("TECNICO")) throw new IllegalArgumentException("Rol inválido");
+        entity.setRole(role);
+        if (request.password() != null) {
+            if (request.password().getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72)
+                throw new IllegalArgumentException("La contraseña excede 72 bytes UTF-8");
+            entity.setPasswordHash(encoder.encode(request.password()));
+        }
     }
 
 }

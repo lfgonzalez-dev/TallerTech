@@ -1,6 +1,9 @@
 package com.tallertech.app.data.repository;
 
 import android.content.Context;
+import com.tallertech.app.data.sync.LastWriteWins;
+import com.tallertech.app.data.sync.SyncManager;
+import com.tallertech.app.data.sync.SyncStatus;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -15,8 +18,10 @@ import com.tallertech.app.data.local.dao.EquipmentDao;
 import java.util.concurrent.ExecutorService;
 
 public class ClientRepository {
+    private final Context syncContext;
 
     private final ClientDao clientDao;
+    private final TallerTechDatabase database;
     private final EquipmentDao equipmentDao;
 
     // Room no debe ejecutarse en el hilo principal.
@@ -27,8 +32,9 @@ public class ClientRepository {
             new Handler(Looper.getMainLooper());
 
     public ClientRepository(Context context) {
+        syncContext = context.getApplicationContext();
 
-        TallerTechDatabase database =
+        database =
                 TallerTechDatabase.getInstance(context);
 
         clientDao = database.clientDao();
@@ -43,7 +49,10 @@ public class ClientRepository {
 
             try {
 
+                client.setUpdatedAt(LastWriteWins.nextLocalTimestamp(client.getUpdatedAt()));
+                client.setSyncStatus(SyncStatus.PENDING);
                 clientDao.insert(client);
+                SyncManager.request(syncContext);
 
                 mainHandler.post(() ->
                         callback.onSuccess()
@@ -115,12 +124,15 @@ public class ClientRepository {
 
     public void update(ClientEntity client, ResultCallback<Void> callback) {
         RepositoryExecutor.run(() -> {
-            if (clientDao.getById(client.getId()) == null) {
-                throw new IllegalArgumentException("El cliente no existe");
-            }
-            client.setUpdatedAt(System.currentTimeMillis());
-            client.setSyncStatus("PENDING");
-            clientDao.update(client);
+            database.runInTransaction(() -> {
+                if (clientDao.getById(client.getId()) == null) {
+                    throw new IllegalArgumentException("El cliente no existe");
+                }
+                client.setUpdatedAt(LastWriteWins.nextLocalTimestamp(clientDao.getById(client.getId()).getUpdatedAt()));
+                client.setSyncStatus(SyncStatus.PENDING);
+                clientDao.update(client);
+            });
+            SyncManager.request(syncContext);
             return null;
         }, callback);
     }

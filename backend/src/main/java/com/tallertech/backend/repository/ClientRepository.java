@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ClientRepository extends JpaRepository<Client, String> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select e from Client e where e.id = :id")
+    Optional<Client> findLockedById(@Param("id") String id);
 
 }
 

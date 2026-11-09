@@ -25,6 +25,54 @@ class AuthSecurityTest {
     @Autowired BCryptPasswordEncoder encoder;
     @Autowired JwtService jwt;
     User user;
+    @Test void nonAdminCannotManageUsers() throws Exception {
+        String token = jwt.issue(user);
+        for (var request : List.of(get("/api/users"), get("/api/users/" + user.getId()),
+                post("/api/users").contentType("application/json").content("{}"),
+                put("/api/users/" + user.getId()).contentType("application/json").content("{}"))) {
+            mvc.perform(request.header("Authorization", "Bearer " + token))
+                    .andExpect(status().isForbidden()).andExpect(jsonPath("$.status").value(403));
+        }
+    }
+    @Test void roleRevocationAppliesEvenToPreviouslyIssuedAdminToken() throws Exception {
+        user.setRole("ADMIN"); users.flush();
+        String token = jwt.issue(user);
+        user.setRole("TECNICO"); users.flush();
+        mvc.perform(get("/api/users").header("Authorization", "Bearer " + token)).andExpect(status().isForbidden());
+    }
+    @Test void adminCreatesUpdatesAndReadsUsersWithHashedPassword() throws Exception {
+        user.setRole("ADMIN"); users.flush();
+        String token = jwt.issue(user);
+        var body = new HashMap<String, Object>(Map.of("name", "Nuevo técnico", "email", "new@example.test",
+                "password", "test-only-password", "role", "TECNICO"));
+        String json = mvc.perform(post("/api/users").header("Authorization", "Bearer " + token)
+                .contentType("application/json").content(mapper.writeValueAsString(body)))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.password").doesNotExist())
+                .andExpect(jsonPath("$.passwordHash").doesNotExist()).andReturn().getResponse().getContentAsString();
+        String id = mapper.readTree(json).get("id").asText();
+        String hash = users.findById(id).orElseThrow().getPasswordHash();
+        assertThat(hash).isNotEqualTo(body.get("password"));
+        assertThat(encoder.matches("test-only-password", hash)).isTrue();
+        body.remove("password"); body.put("name", "Nombre editado");
+        mvc.perform(put("/api/users/" + id).header("Authorization", "Bearer " + token)
+                .contentType("application/json").content(mapper.writeValueAsString(body)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.name").value("Nombre editado"));
+        assertThat(users.findById(id).orElseThrow().getPasswordHash()).isEqualTo(hash);
+        for (String path : List.of("/api/users", "/api/users/" + id)) {
+            String response = mvc.perform(get(path).header("Authorization", "Bearer " + token))
+                    .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+            assertThat(response).doesNotContain("password", hash, "test-only-password");
+        }
+    }
+    @Test void adminCannotCreateUserWithoutPasswordOrInvalidRole() throws Exception {
+        user.setRole("ADMIN"); users.flush();
+        var body = new HashMap<String, Object>(Map.of("name", "User", "email", "invalid@example.test", "role", "ADMIN"));
+        mvc.perform(post("/api/users").header("Authorization", "Bearer " + jwt.issue(user))
+                .contentType("application/json").content(mapper.writeValueAsString(body))).andExpect(status().isBadRequest());
+        body.put("password", "test-only-password"); body.put("role", "SUPERUSER");
+        mvc.perform(post("/api/users").header("Authorization", "Bearer " + jwt.issue(user))
+                .contentType("application/json").content(mapper.writeValueAsString(body))).andExpect(status().isBadRequest());
+    }
     @BeforeEach void setup() {
         user = new User(); user.setId(UUID.randomUUID().toString()); user.setName("Test");
         user.setEmail("auth@example.test"); user.setRole("Técnico");
@@ -85,6 +133,7 @@ class AuthSecurityTest {
         mvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + token)).andExpect(status().isUnauthorized());
     }
     @Test void meAndUsersNeverExposeHash() throws Exception {
+        user.setRole("ADMIN"); users.flush();
         for (String path : List.of("/api/auth/me", "/api/users/" + user.getId())) {
             mvc.perform(get(path).header("Authorization", "Bearer " + jwt.issue(user))).andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(user.getId())).andExpect(jsonPath("$.passwordHash").doesNotExist())

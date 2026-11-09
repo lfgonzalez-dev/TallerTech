@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:orientation="vertical"
+  android:padding="24dp"
+  android:background="@color/tt_background">
+  <com.google.android.material.button.MaterialButton
+    android:id="@+id/btnRecordsBack"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="Volver"
+    android:textAllCaps="false"
+    app:cornerRadius="14dp" />
+  <TextView
+    android:id="@+id/recordsTitle"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    android:text=""
+    android:textSize="28sp"
+    android:textColor="@color/tt_text_primary" />
+  <TextView
+    android:id="@+id/recordsStatus"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    android:text=""
+    android:textSize="16sp"
+    android:textColor="@color/tt_text_primary" />
+  <com.google.android.material.button.MaterialButton
+    android:id="@+id/btnRecordsAction"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text=""
+    android:textAllCaps="false"
+    app:cornerRadius="14dp" />
+  <androidx.recyclerview.widget.RecyclerView
+    android:id="@+id/recordsList"
+    android:layout_width="match_parent"
+    android:layout_height="0dp"
+    android:layout_weight="1" />
+</LinearLayout>

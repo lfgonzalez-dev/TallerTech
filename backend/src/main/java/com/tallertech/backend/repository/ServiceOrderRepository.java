@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ServiceOrderRepository extends JpaRepository<ServiceOrder, String> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select e from ServiceOrder e where e.id = :id")
+    Optional<ServiceOrder> findLockedById(@Param("id") String id);
     boolean existsByCodeAndIdNot(String value, String id);
     Optional<ServiceOrder> findByCode(String code);
     List<ServiceOrder> findByClientId(String clientId);

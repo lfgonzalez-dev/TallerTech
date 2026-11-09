@@ -11,7 +11,7 @@ import com.tallertech.app.data.local.entity.RepairEntity;
 @Dao
 public interface RepairDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     void insert(RepairEntity repair);
 
     @Update
@@ -25,4 +25,15 @@ public interface RepairDao {
 
     @Query("DELETE FROM repairs WHERE id = :id")
     void deleteById(String id);
+    @Query("SELECT * FROM repairs WHERE syncStatus = 'PENDING'")
+    java.util.List<RepairEntity> getPending();
+
+    @Query("SELECT COUNT(*) FROM repairs WHERE syncStatus = :status")
+    int countSyncStatus(String status);
+
+    @Query("UPDATE repairs SET syncStatus = :status WHERE id = :id AND updatedAt = :version")
+    void setSyncStatus(String id, long version, String status);
+
+    @Query("UPDATE repairs SET syncStatus = 'PENDING' WHERE syncStatus = 'ERROR'")
+    void retryErrors();
 }

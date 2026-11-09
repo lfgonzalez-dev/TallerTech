@@ -65,7 +65,7 @@
                     android:id="@+id/tvDetailEquipmentName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Dell Inspiron 15"
+                    android:text=""
                     android:textColor="@color/tt_text_primary"
                     android:textSize="21sp"
                     android:textStyle="bold" />
@@ -75,7 +75,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="Laptop"
+                    android:text=""
                     android:textColor="@color/tt_text_secondary"
                     android:textSize="13sp" />
 
@@ -121,7 +121,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
-                    android:text="DL-98541"
+                    android:text=""
                     android:textColor="@color/tt_text_primary"
                     android:textSize="15sp"
                     android:textStyle="bold" />
@@ -139,7 +139,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
-                    android:text="María López"
+                    android:text=""
                     android:textColor="@color/tt_text_primary"
                     android:textSize="15sp"
                     android:textStyle="bold" />
@@ -157,7 +157,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
-                    android:text="En reparación"
+                    android:text=""
                     android:textColor="@color/tt_navy_secondary"
                     android:textSize="15sp"
                     android:textStyle="bold" />
@@ -191,7 +191,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="18dp"
-                android:text="No enciende y presenta desgaste exterior."
+                android:text=""
                 android:textColor="@color/tt_text_secondary"
                 android:textSize="14sp" />
 

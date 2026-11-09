@@ -64,6 +64,7 @@ public class ClientDetailFragment extends Fragment {
             @Nullable Bundle savedInstanceState) {
 
         super.onViewCreated(view, savedInstanceState);
+        com.tallertech.app.data.local.LocalDataObserver.observe(this, this::reloadLocalData);
 
         // Elementos de la interfaz.
         TextView tvInitials =
@@ -186,8 +187,7 @@ public class ClientDetailFragment extends Fragment {
         startActivity(intent);
     }
 
-    @Override public void onResume() {
-        super.onResume();
+    private void reloadLocalData() {
         View view = getView();
         if (view == null) return;
         ClientRepository repository = new ClientRepository(requireContext());

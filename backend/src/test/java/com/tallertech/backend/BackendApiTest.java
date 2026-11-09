@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-@org.springframework.security.test.context.support.WithMockUser
+@org.springframework.security.test.context.support.WithMockUser(roles = "ADMIN")
 class BackendApiTest {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper mapper;
@@ -33,6 +33,30 @@ class BackendApiTest {
     @Autowired ServiceOrderRepository orderRepository;
 
     private static final String ABSENT = "00000000-0000-0000-0000-000000000099";
+
+    @Test void lastWriteWinsForEveryOperationalResource() throws Exception {
+        String c = client(), e = equipment(c), o = order();
+        assertLastWriteWins("clients", clientBody(), "name");
+        assertLastWriteWins("equipment", new HashMap<>(Map.of("clientId", c)), "brand");
+        assertLastWriteWins("orders", orderBody(c, e), "issue");
+        assertLastWriteWins("diagnoses", new HashMap<>(Map.of("orderId", o)), "diagnosis");
+        assertLastWriteWins("repairs", new HashMap<>(Map.of("orderId", o)), "repair");
+    }
+
+    private void assertLastWriteWins(String path, Map<String, Object> body, String field) throws Exception {
+        body.put("updatedAt", 1000L); body.put(field, "Original");
+        String id = create(path, body).get("id").asText();
+        body.put("updatedAt", 2000L); body.put(field, "Nuevo");
+        mvc.perform(put("/api/" + path + "/" + id).contentType("application/json").content(mapper.writeValueAsString(body)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$." + field).value("Nuevo"))
+                .andExpect(jsonPath("$.updatedAt").value(2000L));
+        for (long timestamp : List.of(1500L, 2000L)) {
+            body.put("updatedAt", timestamp); body.put(field, "No sobrescribir");
+            mvc.perform(put("/api/" + path + "/" + id).contentType("application/json").content(mapper.writeValueAsString(body)))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$." + field).value("Nuevo"))
+                    .andExpect(jsonPath("$.updatedAt").value(2000L));
+        }
+    }
 
     private Map<String, Object> clientBody() {
         return new HashMap<>(Map.of("name", "Cliente de prueba", "phone", "70000000"));
@@ -73,7 +97,7 @@ class BackendApiTest {
         mvc.perform(get("/api/clients/" + id)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id)).andExpect(jsonPath("$.updatedAt").value(1700000000000L))
                 .andExpect(jsonPath("$.syncStatus").doesNotExist());
-        body.put("name", "Nombre actualizado");
+        body.put("name", "Nombre actualizado"); body.put("updatedAt", 1700000000001L);
         mvc.perform(put("/api/clients/" + id).contentType("application/json").content(mapper.writeValueAsString(body)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.name").value("Nombre actualizado"))
                 .andExpect(jsonPath("$.updatedAt").value(org.hamcrest.Matchers.greaterThan(1700000000000L)));
@@ -182,7 +206,7 @@ class BackendApiTest {
     }
 
     @Test void usersUniqueEmailUpdateAndNoPassword() throws Exception {
-        var body = Map.<String, Object>of("name", "Usuario demo", "email", "demo@example.test", "role", "Técnico");
+        var body = Map.<String, Object>of("name", "Usuario demo", "email", "demo@example.test", "role", "Técnico", "password", "test-only-password");
         String id = create("users", body).get("id").asText();
         send("users", body).andExpect(status().isConflict());
         mvc.perform(get("/api/users/" + id)).andExpect(status().isOk()).andExpect(jsonPath("$.password").doesNotExist());

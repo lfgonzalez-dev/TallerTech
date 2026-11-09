@@ -11,7 +11,7 @@ import com.tallertech.app.data.local.entity.DiagnosisEntity;
 @Dao
 public interface DiagnosisDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     void insert(DiagnosisEntity diagnosis);
 
     @Update
@@ -25,4 +25,15 @@ public interface DiagnosisDao {
 
     @Query("DELETE FROM diagnoses WHERE id = :id")
     void deleteById(String id);
+    @Query("SELECT * FROM diagnoses WHERE syncStatus = 'PENDING'")
+    java.util.List<DiagnosisEntity> getPending();
+
+    @Query("SELECT COUNT(*) FROM diagnoses WHERE syncStatus = :status")
+    int countSyncStatus(String status);
+
+    @Query("UPDATE diagnoses SET syncStatus = :status WHERE id = :id AND updatedAt = :version")
+    void setSyncStatus(String id, long version, String status);
+
+    @Query("UPDATE diagnoses SET syncStatus = 'PENDING' WHERE syncStatus = 'ERROR'")
+    void retryErrors();
 }

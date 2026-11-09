@@ -28,7 +28,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (!header.startsWith("Bearer ")) throw new IllegalArgumentException();
                 String id = jwt.userId(header.substring(7));
                 var user = users.findById(id).filter(u -> u.getPasswordHash() != null).orElseThrow(IllegalArgumentException::new);
-                var auth = new UsernamePasswordAuthenticationToken(user.getId(), null, List.of());
+                var auth = new UsernamePasswordAuthenticationToken(user.getId(), null, List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + com.tallertech.backend.service.Roles.normalize(user.getRole()))));
                 SecurityContextHolder.getContext().setAuthentication(auth);
             } catch (JwtException | IllegalArgumentException ex) {
                 SecurityContextHolder.clearContext();

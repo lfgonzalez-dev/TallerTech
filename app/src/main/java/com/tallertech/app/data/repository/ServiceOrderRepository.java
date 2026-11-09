@@ -11,9 +11,11 @@ import java.util.Locale;
 import java.util.UUID;
 
 public class ServiceOrderRepository {
+    private final Context syncContext;
     private final TallerTechDatabase database;
 
     public ServiceOrderRepository(Context context) {
+        syncContext = context.getApplicationContext();
         database = TallerTechDatabase.getInstance(context);
     }
 
@@ -51,6 +53,7 @@ public class ServiceOrderRepository {
                         code[0], clientId, equipmentId, issue, entryDate, technician,
                         "Pendiente", System.currentTimeMillis(), "PENDING"));
             });
+            com.tallertech.app.data.sync.SyncManager.request(syncContext);
             return code[0];
         }, callback);
     }
@@ -64,8 +67,9 @@ public class ServiceOrderRepository {
                 if (database.serviceOrderDao().getById(id) == null) {
                     throw new IllegalArgumentException("La orden no existe");
                 }
-                database.serviceOrderDao().updateStatus(id, status, System.currentTimeMillis());
+                database.serviceOrderDao().updateStatus(id, status, com.tallertech.app.data.sync.LastWriteWins.nextLocalTimestamp(database.serviceOrderDao().getById(id).getUpdatedAt()));
             });
+            com.tallertech.app.data.sync.SyncManager.request(syncContext);
             return null;
         }, callback);
     }

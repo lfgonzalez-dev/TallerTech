@@ -49,8 +49,9 @@ public class EquipmentServiceImpl implements EquipmentService {
     public EquipmentResponse update(String id, EquipmentRequest request) {
         Ids.checkUpdate(id, request.id());
         var entity = equipmentRepository.findLockedById(id).orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado"));
+        if (!LastWriteWins.accepts(request.updatedAt(), entity.getUpdatedAt())) return EquipmentResponse.from(entity);
         apply(entity, request);
-        entity.setUpdatedAt(Math.max(System.currentTimeMillis(), entity.getUpdatedAt() + 1));
+        entity.setUpdatedAt(LastWriteWins.timestamp(request.updatedAt(), entity.getUpdatedAt()));
         return EquipmentResponse.from(equipmentRepository.saveAndFlush(entity));
     }
 

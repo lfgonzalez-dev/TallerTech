@@ -46,9 +46,10 @@ public class RepairServiceImpl implements RepairService {
     @Override
     public RepairResponse update(String id, RepairRequest request) {
         Ids.checkUpdate(id, request.id());
-        var entity = require(id);
+        var entity = repairRepository.findLockedById(id).orElseThrow(() -> new ResourceNotFoundException("Registro no encontrado"));
+        if (!LastWriteWins.accepts(request.updatedAt(), entity.getUpdatedAt())) return RepairResponse.from(entity);
         apply(entity, request);
-        entity.setUpdatedAt(Math.max(System.currentTimeMillis(), entity.getUpdatedAt() + 1));
+        entity.setUpdatedAt(LastWriteWins.timestamp(request.updatedAt(), entity.getUpdatedAt()));
         return RepairResponse.from(repairRepository.saveAndFlush(entity));
     }
 

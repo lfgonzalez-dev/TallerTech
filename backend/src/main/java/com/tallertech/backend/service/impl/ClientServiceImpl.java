@@ -44,9 +44,10 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public ClientResponse update(String id, ClientRequest request) {
         Ids.checkUpdate(id, request.id());
-        var entity = require(id);
+        var entity = clientRepository.findLockedById(id).orElseThrow(() -> new ResourceNotFoundException("Registro no encontrado"));
+        if (!LastWriteWins.accepts(request.updatedAt(), entity.getUpdatedAt())) return ClientResponse.from(entity);
         apply(entity, request);
-        entity.setUpdatedAt(Math.max(System.currentTimeMillis(), entity.getUpdatedAt() + 1));
+        entity.setUpdatedAt(LastWriteWins.timestamp(request.updatedAt(), entity.getUpdatedAt()));
         return ClientResponse.from(clientRepository.saveAndFlush(entity));
     }
 

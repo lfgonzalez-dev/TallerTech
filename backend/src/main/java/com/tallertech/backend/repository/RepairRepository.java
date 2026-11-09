@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface RepairRepository extends JpaRepository<Repair, String> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select e from Repair e where e.id = :id")
+    Optional<Repair> findLockedById(@Param("id") String id);
     boolean existsByOrderIdAndIdNot(String value, String id);
     Optional<Repair> findByOrderId(String orderId);
 }

@@ -66,6 +66,7 @@ public class OrderDetailFragment extends Fragment {
             @Nullable Bundle savedInstanceState) {
 
         super.onViewCreated(view, savedInstanceState);
+        com.tallertech.app.data.local.LocalDataObserver.observe(this, this::reloadLocalData);
         loaded = false;
         saving = false;
 
@@ -263,8 +264,7 @@ public class OrderDetailFragment extends Fragment {
         return 0;
     }
 
-    @Override public void onResume() {
-        super.onResume();
+    private void reloadLocalData() {
         View view = getView();
         if (view == null) return;
         setActionsEnabled(view, false);

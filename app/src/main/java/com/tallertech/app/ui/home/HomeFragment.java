@@ -27,7 +27,8 @@ public class HomeFragment  extends Fragment{
             @NonNull View view,
             @Nullable Bundle savedInstanceState) {
 
-        super.onViewCreated(view,savedInstanceState);
+        super.onViewCreated(view, savedInstanceState);
+        com.tallertech.app.data.local.LocalDataObserver.observe(this, this::reloadLocalData);
 
         //Obtenemos los botones del layout del fragment
         MaterialButton btnNewOrder =
@@ -57,8 +58,7 @@ public class HomeFragment  extends Fragment{
                 .commit();
     }
 
-    @Override public void onResume() {
-        super.onResume();
+    private void reloadLocalData() {
         View view = getView();
         if (view == null) return;
         new StatisticsRepository(requireContext()).load(new ResultCallback<StatisticsRepository.Statistics>() {

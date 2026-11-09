@@ -33,6 +33,13 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
 
         setContentView(R.layout.activity_main);
+        com.tallertech.app.data.repository.AuthRepository.expiredSession.observe(this, expired -> {
+            if (Boolean.TRUE.equals(expired)) {
+                startActivity(new android.content.Intent(this, LoginActivity.class)
+                        .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK));
+                finish();
+            }
+        });
 
         //Obtener la barra de navegación del XML
         bottomNavigation = findViewById(R.id.bottomNavigation);
@@ -100,6 +107,11 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
+    @Override protected void onResume() {
+        super.onResume();
+        if (com.tallertech.app.data.repository.AuthRepository.getCurrentUser() != null)
+            com.tallertech.app.data.sync.SyncManager.request(this);
+    }
     private void cambiarFragment(Fragment fragment) {
 
         getSupportFragmentManager()

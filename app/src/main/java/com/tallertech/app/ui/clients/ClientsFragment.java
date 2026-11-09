@@ -42,6 +42,7 @@ public class ClientsFragment extends Fragment {
             @Nullable Bundle savedInstanceState) {
 
         super.onViewCreated(view, savedInstanceState);
+        com.tallertech.app.data.local.LocalDataObserver.observe(this, this::reloadLocalData);
 
         rvClients =
                 view.findViewById(R.id.rvClients);
@@ -93,18 +94,15 @@ public class ClientsFragment extends Fragment {
         );
     }
 
-    @Override
-    public void onResume() {
+    private void reloadLocalData() {
 
-        super.onResume();
-
-        // Recargar después de regresar de Registrar cliente.
         cargarClientes();
         View view = getView();
         new StatisticsRepository(requireContext()).load(new ResultCallback<StatisticsRepository.Statistics>() {
             @Override public void onResult(StatisticsRepository.Statistics stats) {
                 if (view == null || getView() != view) return;
                 ((TextView) view.findViewById(R.id.tvClientCount)).setText(String.valueOf(stats.clients));
+                ((TextView) view.findViewById(R.id.tvRecentClientCount)).setText(String.valueOf(stats.recentOrders));
             }
             @Override public void onError(Exception e) {
                 if (!isAdded() || view == null || getView() != view) return;

@@ -31,7 +31,7 @@ public class SecurityConfig {
                 .requestCache(c -> c.disable()).formLogin(f -> f.disable())
                 .httpBasic(b -> b.disable()).logout(l -> l.disable())
                 .authorizeHttpRequests(a -> a.requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                        .anyRequest().authenticated())
+                        .requestMatchers("/api/users", "/api/users/**").hasRole("ADMIN").anyRequest().authenticated())
                 .exceptionHandling(e -> e.authenticationEntryPoint((req, res, ex) -> errors.write(res, 401, "Autenticación requerida"))
                         .accessDeniedHandler((req, res, ex) -> errors.write(res, 403, "Acceso denegado")))
                 .addFilterBefore(new JwtAuthenticationFilter(jwt, users, errors), UsernamePasswordAuthenticationFilter.class)
