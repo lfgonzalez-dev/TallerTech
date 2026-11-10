@@ -3,6 +3,7 @@ plugins {
 }
 
 android {
+    buildFeatures { buildConfig = true }
     namespace = "com.tallertech.app"
     compileSdk {
         version = release(36) {
@@ -21,7 +22,14 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/\"")
+        }
         release {
+            // Supply the future HTTPS URL with -PapiBaseUrl=https://host/.
+            val apiUrl = providers.gradleProperty("apiBaseUrl").getOrElse("https://api.tallertech.invalid/")
+            require(apiUrl.startsWith("https://") && apiUrl.endsWith("/"))
+            buildConfigField("String", "API_BASE_URL", "\"$apiUrl\"")
             optimization {
                 enable = false
             }
@@ -34,6 +42,10 @@ android {
 }
 
 dependencies {
+    implementation("androidx.work:work-runtime:2.10.1")
+    implementation("com.squareup.retrofit2:retrofit:3.0.0")
+    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation(libs.activity.ktx)
     implementation(libs.appcompat)
     implementation(libs.constraintlayout)

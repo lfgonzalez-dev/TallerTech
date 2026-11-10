@@ -1,0 +1,594 @@
+{
+  "info": {
+    "name": "TallerTech - Etapa 2",
+    "description": "Ejecutar auth/Login primero y configurar credenciales solo en entorno local. Después Clients → Equipment → Orders → Diagnoses → Repairs; Users es independiente. IDs fijos de ejemplo; repetir POST produce 409. PUT reemplaza los campos del recurso.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {"type":"bearer","bearer":[{"key":"token","value":"{{token}}","type":"string"}]},
+  "variable": [
+    {"key":"token","value":""},
+    {"key":"authEmail","value":""},
+    {"key":"authPassword","value":""},
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "clientId",
+      "value": "550e8400-e29b-41d4-a716-446655440001"
+    },
+    {
+      "key": "userId",
+      "value": "550e8400-e29b-41d4-a716-446655440006"
+    },
+    {
+      "key": "equipmentId",
+      "value": "550e8400-e29b-41d4-a716-446655440002"
+    },
+    {
+      "key": "orderId",
+      "value": "550e8400-e29b-41d4-a716-446655440003"
+    },
+    {
+      "key": "diagnosisId",
+      "value": "550e8400-e29b-41d4-a716-446655440004"
+    },
+    {
+      "key": "repairId",
+      "value": "550e8400-e29b-41d4-a716-446655440005"
+    }
+  ],
+  "item": [
+{
+    "name":  "auth",
+    "item":  [
+                 {
+                     "name":  "POST Login",
+                     "request":  {
+                                     "method":  "POST",
+                                     "auth":  {
+                                                  "type":  "noauth"
+                                              },
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "url":  "{{baseUrl}}/api/auth/login",
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"email\":\"{{authEmail}}\",\"password\":\"{{authPassword}}\"}",
+                                                  "options":  {
+                                                                  "raw":  {
+                                                                              "language":  "json"
+                                                                          }
+                                                              }
+                                              }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "pm.collectionVariables.set(\u0027token\u0027, \u0027\u0027);",
+                                                                   "if (pm.response.code === 200) { pm.collectionVariables.set(\u0027token\u0027, pm.response.json().token); }"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "GET Me",
+                     "request":  {
+                                     "method":  "GET",
+                                     "url":  "{{baseUrl}}/api/auth/me"
+                                 }
+                 }
+             ]
+},
+    {
+      "name": "clients",
+      "item": [
+        {
+          "name": "Crear",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/clients",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n  \"name\": \"Cliente demo\",\n  \"phone\": \"70000000\",\n  \"email\": \"cliente@example.test\",\n  \"address\": \"San Salvador\",\n  \"notes\": \"Ejemplo\",\n  \"updatedAt\": 1700000000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201 Created\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"clientId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/clients"
+          }
+        },
+        {
+          "name": "Consultar por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/clients/{{clientId}}"
+          }
+        },
+        {
+          "name": "Actualizar (reemplazo completo)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/clients/{{clientId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n  \"name\": \"Cliente demo\",\n  \"phone\": \"70000000\",\n  \"email\": \"cliente@example.test\",\n  \"address\": \"San Salvador\",\n  \"notes\": \"Ejemplo\",\n  \"updatedAt\": 1700000000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "users",
+      "item": [
+        {
+          "name": "Crear",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440006\",\n  \"name\": \"Técnico demo\",\n  \"email\": \"tecnico@example.test\",\n  \"role\": \"Técnico\",\n  \"updatedAt\": 1700000000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201 Created\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"userId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/users"
+          }
+        },
+        {
+          "name": "Consultar por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/users/{{userId}}"
+          }
+        },
+        {
+          "name": "Actualizar (reemplazo completo)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users/{{userId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440006\",\n  \"name\": \"Técnico demo\",\n  \"email\": \"tecnico@example.test\",\n  \"role\": \"Técnico\",\n  \"updatedAt\": 1700000000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "equipment",
+      "item": [
+        {
+          "name": "Crear",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/equipment",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n  \"clientId\": \"{{clientId}}\",\n  \"type\": \"Laptop\",\n  \"brand\": \"Marca demo\",\n  \"model\": \"Modelo demo\",\n  \"serial\": \"DEMO-001\",\n  \"description\": \"Equipo de prueba\",\n  \"updatedAt\": 1700000000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201 Created\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"equipmentId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/equipment"
+          }
+        },
+        {
+          "name": "Consultar por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/equipment/{{equipmentId}}"
+          }
+        },
+        {
+          "name": "Actualizar (reemplazo completo)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/equipment/{{equipmentId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n  \"clientId\": \"{{clientId}}\",\n  \"type\": \"Laptop\",\n  \"brand\": \"Marca demo\",\n  \"model\": \"Modelo demo\",\n  \"serial\": \"DEMO-001\",\n  \"description\": \"Equipo de prueba\",\n  \"updatedAt\": 1700000000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Por cliente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/equipment/client/{{clientId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "orders",
+      "item": [
+        {
+          "name": "Crear",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/orders",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440003\",\n  \"code\": \"ORD-0001\",\n  \"clientId\": \"{{clientId}}\",\n  \"equipmentId\": \"{{equipmentId}}\",\n  \"issue\": \"No enciende\",\n  \"entryDate\": 1700000000000,\n  \"technician\": \"Técnico demo\",\n  \"status\": \"Pendiente\",\n  \"updatedAt\": 1700000000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201 Created\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"orderId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/orders"
+          }
+        },
+        {
+          "name": "Consultar por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/orders/{{orderId}}"
+          }
+        },
+        {
+          "name": "Actualizar (reemplazo completo)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/orders/{{orderId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440003\",\n  \"code\": \"ORD-0001\",\n  \"clientId\": \"{{clientId}}\",\n  \"equipmentId\": \"{{equipmentId}}\",\n  \"issue\": \"No enciende\",\n  \"entryDate\": 1700000000000,\n  \"technician\": \"Técnico demo\",\n  \"status\": \"Pendiente\",\n  \"updatedAt\": 1700000000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Por cliente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/orders/client/{{clientId}}"
+          }
+        },
+        {
+          "name": "Por equipo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/orders/equipment/{{equipmentId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "diagnoses",
+      "item": [
+        {
+          "name": "Crear",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/diagnoses",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440004\",\n  \"orderId\": \"{{orderId}}\",\n  \"diagnosis\": \"Fuente dañada\",\n  \"observations\": \"Sin alimentación\",\n  \"recommendations\": \"Cambiar fuente\",\n  \"updatedAt\": 1700000000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201 Created\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"diagnosisId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/diagnoses"
+          }
+        },
+        {
+          "name": "Consultar por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/diagnoses/{{diagnosisId}}"
+          }
+        },
+        {
+          "name": "Actualizar (reemplazo completo)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/diagnoses/{{diagnosisId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440004\",\n  \"orderId\": \"{{orderId}}\",\n  \"diagnosis\": \"Fuente dañada\",\n  \"observations\": \"Sin alimentación\",\n  \"recommendations\": \"Cambiar fuente\",\n  \"updatedAt\": 1700000000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Por orden",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/diagnoses/order/{{orderId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "repairs",
+      "item": [
+        {
+          "name": "Crear",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/repairs",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440005\",\n  \"orderId\": \"{{orderId}}\",\n  \"repair\": \"Cambio de fuente\",\n  \"parts\": \"Fuente demo\",\n  \"observations\": \"Prueba de encendido correcta\",\n  \"updatedAt\": 1700000000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201 Created\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"repairId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/repairs"
+          }
+        },
+        {
+          "name": "Consultar por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/repairs/{{repairId}}"
+          }
+        },
+        {
+          "name": "Actualizar (reemplazo completo)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/repairs/{{repairId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440005\",\n  \"orderId\": \"{{orderId}}\",\n  \"repair\": \"Cambio de fuente\",\n  \"parts\": \"Fuente demo\",\n  \"observations\": \"Prueba de encendido correcta\",\n  \"updatedAt\": 1700000000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Por orden",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/repairs/order/{{orderId}}"
+          }
+        }
+      ]
+    }
+  ]
+}

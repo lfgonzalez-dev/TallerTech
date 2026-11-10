@@ -6,9 +6,11 @@ import com.tallertech.app.data.local.entity.RepairEntity;
 import java.util.UUID;
 
 public class RepairRepository {
+    private final Context syncContext;
     private final TallerTechDatabase database;
 
     public RepairRepository(Context context) {
+        syncContext = context.getApplicationContext();
         database = TallerTechDatabase.getInstance(context);
     }
 
@@ -28,10 +30,11 @@ public class RepairRepository {
                 RepairEntity existing = database.repairDao().getByOrder(orderId);
                 RepairEntity entity = new RepairEntity(existing == null
                         ? UUID.randomUUID().toString() : existing.getId(), orderId,
-                        repair, parts, observations, System.currentTimeMillis(), "PENDING");
+                        repair, parts, observations, com.tallertech.app.data.sync.LastWriteWins.nextLocalTimestamp(existing == null ? 0 : existing.getUpdatedAt()), "PENDING");
                 if (existing == null) database.repairDao().insert(entity);
                 else database.repairDao().update(entity);
             });
+            com.tallertech.app.data.sync.SyncManager.request(syncContext);
             return null;
         }, callback);
     }

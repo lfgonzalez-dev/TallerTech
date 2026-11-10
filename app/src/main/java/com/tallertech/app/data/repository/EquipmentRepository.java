@@ -1,6 +1,9 @@
 package com.tallertech.app.data.repository;
 
 import android.content.Context;
+import com.tallertech.app.data.sync.LastWriteWins;
+import com.tallertech.app.data.sync.SyncManager;
+import com.tallertech.app.data.sync.SyncStatus;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -12,6 +15,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 public class EquipmentRepository {
+    private final Context syncContext;
 
     private final EquipmentDao equipmentDao;
     private final TallerTechDatabase database;
@@ -24,6 +28,7 @@ public class EquipmentRepository {
             new Handler(Looper.getMainLooper());
 
     public EquipmentRepository(Context context) {
+        syncContext = context.getApplicationContext();
 
         database =
                 TallerTechDatabase.getInstance(context);
@@ -39,7 +44,10 @@ public class EquipmentRepository {
 
             try {
 
+                equipment.setUpdatedAt(LastWriteWins.nextLocalTimestamp(equipment.getUpdatedAt()));
+                equipment.setSyncStatus(SyncStatus.PENDING);
                 equipmentDao.insert(equipment);
+                SyncManager.request(syncContext);
 
                 mainHandler.post(() ->
                         callback.onSuccess()
@@ -109,12 +117,15 @@ public class EquipmentRepository {
 
     public void update(EquipmentEntity equipment, ResultCallback<Void> callback) {
         RepositoryExecutor.run(() -> {
-            if (equipmentDao.getById(equipment.getId()) == null) {
-                throw new IllegalArgumentException("El equipo no existe");
-            }
-            equipment.setUpdatedAt(System.currentTimeMillis());
-            equipment.setSyncStatus("PENDING");
-            equipmentDao.update(equipment);
+            database.runInTransaction(() -> {
+                if (equipmentDao.getById(equipment.getId()) == null) {
+                    throw new IllegalArgumentException("El equipo no existe");
+                }
+                equipment.setUpdatedAt(LastWriteWins.nextLocalTimestamp(equipmentDao.getById(equipment.getId()).getUpdatedAt()));
+                equipment.setSyncStatus(SyncStatus.PENDING);
+                equipmentDao.update(equipment);
+            });
+            SyncManager.request(syncContext);
             return null;
         }, callback);
     }

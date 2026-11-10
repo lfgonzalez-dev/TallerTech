@@ -13,6 +13,12 @@ import java.util.List;
 
 @Dao
 public interface ServiceOrderDao {
+    @Query("SELECT o.id AS orderId, o.code, c.name AS clientName, e.brand || ' ' || e.model AS equipmentName, " +
+            "o.entryDate, o.status, o.technician, d.diagnosis, r.repair FROM service_orders o " +
+            "JOIN clients c ON c.id = o.clientId JOIN equipment e ON e.id = o.equipmentId " +
+            "LEFT JOIN diagnoses d ON d.orderId = o.id LEFT JOIN repairs r ON r.orderId = o.id " +
+            "ORDER BY o.entryDate DESC, o.id")
+    java.util.List<com.tallertech.app.data.local.HistoryEntry> getHistory();
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     void insert(ServiceOrderEntity order);
@@ -61,6 +67,9 @@ public interface ServiceOrderDao {
     @Query("SELECT COUNT(*) FROM service_orders")
     int count();
 
+    @Query("SELECT COUNT(*) FROM service_orders WHERE entryDate >= :since")
+    int countRecent(long since);
+
     @Query("SELECT o.*, c.name AS clientName, e.brand || ' ' || e.model AS equipmentName " +
             "FROM service_orders o JOIN clients c ON c.id = o.clientId " +
             "JOIN equipment e ON e.id = o.equipmentId ORDER BY o.entryDate DESC, o.rowid DESC")
@@ -101,4 +110,15 @@ public interface ServiceOrderDao {
     @Query("SELECT status FROM service_orders WHERE equipmentId = :equipmentId " +
             "ORDER BY CASE WHEN status != 'Completado' THEN 0 ELSE 1 END, entryDate DESC, rowid DESC LIMIT 1")
     String getEquipmentStatus(String equipmentId);
+    @Query("SELECT * FROM service_orders WHERE syncStatus = 'PENDING'")
+    java.util.List<ServiceOrderEntity> getPending();
+
+    @Query("SELECT COUNT(*) FROM service_orders WHERE syncStatus = :status")
+    int countSyncStatus(String status);
+
+    @Query("UPDATE service_orders SET syncStatus = :status WHERE id = :id AND updatedAt = :version")
+    void setSyncStatus(String id, long version, String status);
+
+    @Query("UPDATE service_orders SET syncStatus = 'PENDING' WHERE syncStatus = 'ERROR'")
+    void retryErrors();
 }

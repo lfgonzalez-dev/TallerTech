@@ -67,11 +67,9 @@ public class NewOrderFragment extends Fragment {
         saving = false;
         etClient.setEnabled(false);
         etEquipment.setEnabled(false);
-        // El técnico se guarda como texto local, sin autenticación remota.
-        etTechnician.setAdapter(new ArrayAdapter<>(requireContext(),
-                android.R.layout.simple_dropdown_item_1line, new String[]{"Sin asignar"}));
         etTechnician.setInputType(android.text.InputType.TYPE_CLASS_TEXT);
-        etTechnician.setText("Sin asignar", false);
+        var currentUser = com.tallertech.app.data.repository.AuthRepository.getCurrentUser();
+        etTechnician.setText(currentUser == null ? "" : currentUser.name, false);
         actualizarFecha();
         etDate.setOnClickListener(v -> new DatePickerDialog(requireContext(), (picker, year, month, day) -> {
             selectedDate.set(year, month, day);

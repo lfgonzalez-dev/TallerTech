@@ -14,7 +14,7 @@ import java.util.List;
 @Dao
 public interface ClientDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     void insert(ClientEntity client);
 
     @Update
@@ -38,4 +38,15 @@ public interface ClientDao {
 
     @Query("SELECT COUNT(*) FROM clients")
     int count();
+    @Query("SELECT * FROM clients WHERE syncStatus = 'PENDING'")
+    java.util.List<ClientEntity> getPending();
+
+    @Query("SELECT COUNT(*) FROM clients WHERE syncStatus = :status")
+    int countSyncStatus(String status);
+
+    @Query("UPDATE clients SET syncStatus = :status WHERE id = :id AND updatedAt = :version")
+    void setSyncStatus(String id, long version, String status);
+
+    @Query("UPDATE clients SET syncStatus = 'PENDING' WHERE syncStatus = 'ERROR'")
+    void retryErrors();
 }

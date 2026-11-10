@@ -48,4 +48,15 @@ public interface EquipmentDao {
             "o.entryDate DESC, o.rowid DESC LIMIT 1), 'Registrado') AS orderStatus " +
             "FROM equipment e JOIN clients c ON c.id = e.clientId ORDER BY e.brand ASC, e.model ASC")
     List<com.tallertech.app.data.local.EquipmentDetails> getAllDetails();
+    @Query("SELECT * FROM equipment WHERE syncStatus = 'PENDING'")
+    java.util.List<EquipmentEntity> getPending();
+
+    @Query("SELECT COUNT(*) FROM equipment WHERE syncStatus = :status")
+    int countSyncStatus(String status);
+
+    @Query("UPDATE equipment SET syncStatus = :status WHERE id = :id AND updatedAt = :version")
+    void setSyncStatus(String id, long version, String status);
+
+    @Query("UPDATE equipment SET syncStatus = 'PENDING' WHERE syncStatus = 'ERROR'")
+    void retryErrors();
 }

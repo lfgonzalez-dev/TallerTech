@@ -69,7 +69,7 @@
                     android:layout_height="58dp"
                     android:background="@color/tt_navy"
                     android:gravity="center"
-                    android:text="ML"
+                    android:text=""
                     android:textColor="@color/white"
                     android:textSize="17sp"
                     android:textStyle="bold" />
@@ -85,7 +85,7 @@
                         android:id="@+id/tvDetailClientName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="María López"
+                        android:text=""
                         android:textColor="@color/tt_text_primary"
                         android:textSize="19sp"
                         android:textStyle="bold" />
@@ -95,7 +95,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:text="7212-4567 · maria@email.com"
+                        android:text=""
                         android:textColor="@color/tt_text_secondary"
                         android:textSize="13sp" />
 
@@ -135,7 +135,7 @@
                     android:id="@+id/tvDetailClientEquipment"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="2 equipos"
+                    android:text=""
                     android:textColor="@color/tt_text_primary"
                     android:textSize="16sp"
                     android:textStyle="bold" />
