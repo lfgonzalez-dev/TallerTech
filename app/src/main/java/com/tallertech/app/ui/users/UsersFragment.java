@@ -22,6 +22,8 @@ public final class UsersFragment extends Fragment {
     @Override public void onViewCreated(@NonNull View view, @Nullable Bundle state) {
         super.onViewCreated(view, state);
         ((TextView) view.findViewById(R.id.recordsTitle)).setText("Usuarios");
+        ((TextView) view.findViewById(R.id.recordsSubtitle)).setText(R.string.users_subtitle);
+        view.findViewById(R.id.recordsSummary).setVisibility(View.VISIBLE);
         view.findViewById(R.id.btnRecordsBack).setOnClickListener(v -> getParentFragmentManager().popBackStack());
         Button create = view.findViewById(R.id.btnRecordsAction); create.setText("Crear usuario");
         create.setVisibility(UserRepository.isAdmin(AuthRepository.getCurrentUser()) ? View.VISIBLE : View.GONE);
@@ -44,8 +46,10 @@ public final class UsersFragment extends Fragment {
             @Override public void onResult(List<UserDto> users) {
                 if (getView() != view) return;
                 List<RecordAdapter.Row> rows = new ArrayList<>();
-                for (UserDto user : users) rows.add(new RecordAdapter.Row(user.name, user.email + "\n" + UserRepository.roleLabel(user.role), () -> detail(user.id)));
+                for (UserDto user : users) rows.add(RecordAdapter.Row.user(
+                        user.name, user.email, UserRepository.roleLabel(user.role), () -> detail(user.id)));
                 adapter.submit(rows);
+                ((TextView) view.findViewById(R.id.recordsCount)).setText(getString(R.string.users_count, users.size()));
                 ((TextView) view.findViewById(R.id.recordsStatus)).setText(users.isEmpty() ? "Sin usuarios" : "Selecciona un usuario para consultar o editar");
             }
             @Override public void onError(Exception error) {

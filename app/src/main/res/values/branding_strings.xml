@@ -1,0 +1,14 @@
+<resources>
+<string name="profile_title">Perfil</string>
+<string name="profile_subtitle">Administra tu cuenta y las opciones del taller</string>
+<string name="profile_management">Gestión del taller</string>
+<string name="brand_tagline">Tecnología en buenas manos</string>
+<string name="profile_sync_title">Sincronización</string>
+<string name="profile_sync_description">Estado y sincronización de datos</string>
+<string name="profile_history_title">Historial</string>
+<string name="profile_history_description">Consulta el historial de servicios</string>
+<string name="profile_users_title">Usuarios</string>
+<string name="profile_users_description">Administra los usuarios del taller</string>
+<string name="profile_logout_title">Cerrar sesión</string>
+<string name="profile_logout_description">Finaliza la sesión actual</string>
+</resources>

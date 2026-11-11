@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="management_back">Volver</string>
+  <string name="sync_screen_title">Sincronización</string>
+  <string name="sync_screen_subtitle">Estado de tus datos locales y remotos</string>
+  <string name="sync_state_label">Estado de sincronización</string>
+  <string name="sync_loading">Consultando estado…</string>
+  <string name="sync_pending_label">Pendientes</string>
+  <string name="sync_error_label">Con error</string>
+  <string name="sync_now_label">Sincronizar ahora</string>
+  <string name="sync_last_label">Última sincronización</string>
+  <string name="sync_note">Los datos se guardan primero en este dispositivo. Sincronizar ahora también reintenta los registros con error.</string>
+  <string name="history_subtitle">Consulta el historial de servicios</string>
+  <string name="users_subtitle">Administra el acceso al taller</string>
+  <string name="users_summary">Usuarios registrados</string>
+  <string name="users_count">%1$d</string>
+  <string name="history_date">Fecha</string>
+  <string name="history_technician">Técnico</string>
+  <string name="history_diagnosis">Diagnóstico</string>
+  <string name="history_repair">Reparación</string>
+</resources>

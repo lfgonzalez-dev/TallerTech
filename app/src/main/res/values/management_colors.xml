@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Scoped to Sync, History and Users; the application theme stays unchanged. -->
+    <color name="tt_management_brand">#0B1F3A</color>
+    <color name="tt_management_background">#F7F8FC</color>
+    <color name="tt_management_border">#E5EAF2</color>
+    <color name="tt_management_text">#142033</color>
+    <color name="tt_management_text_secondary">#596A80</color>
+    <color name="tt_management_accent">#7563AD</color>
+    <color name="tt_management_chip_background">#F0ECFA</color>
+    <color name="tt_management_chip_text">#594583</color>
+    <color name="tt_management_error">#9B4654</color>
+    <color name="tt_management_button_disabled">#E5EAF2</color>
+    <color name="tt_management_button_text_disabled">#6B7A90</color>
+    <color name="tt_management_button_ripple">#33FFFFFF</color>
+</resources>

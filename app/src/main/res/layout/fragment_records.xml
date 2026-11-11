@@ -1,43 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
-  android:layout_width="match_parent"
-  android:layout_height="match_parent"
-  android:orientation="vertical"
-  android:padding="24dp"
-  android:background="@color/tt_background">
-  <com.google.android.material.button.MaterialButton
-    android:id="@+id/btnRecordsBack"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:text="Volver"
-    android:textAllCaps="false"
-    app:cornerRadius="14dp" />
-  <TextView
-    android:id="@+id/recordsTitle"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp"
-    android:text=""
-    android:textSize="28sp"
-    android:textColor="@color/tt_text_primary" />
-  <TextView
-    android:id="@+id/recordsStatus"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp"
-    android:text=""
-    android:textSize="16sp"
-    android:textColor="@color/tt_text_primary" />
-  <com.google.android.material.button.MaterialButton
-    android:id="@+id/btnRecordsAction"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:text=""
-    android:textAllCaps="false"
-    app:cornerRadius="14dp" />
-  <androidx.recyclerview.widget.RecyclerView
-    android:id="@+id/recordsList"
-    android:layout_width="match_parent"
-    android:layout_height="0dp"
-    android:layout_weight="1" />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:paddingHorizontal="24dp" android:paddingTop="24dp" android:background="@color/tt_management_background">
+  <com.google.android.material.button.MaterialButton android:id="@+id/btnRecordsBack" style="@style/Widget.Material3.Button.TextButton" android:layout_width="48dp" android:layout_height="48dp" android:contentDescription="@string/management_back" android:padding="12dp" android:minWidth="0dp" android:minHeight="0dp" android:insetTop="0dp" android:insetBottom="0dp" app:icon="@drawable/ic_management_back" app:iconPadding="0dp" app:iconTint="@color/tt_management_text" app:cornerRadius="24dp" />
+  <TextView android:id="@+id/recordsTitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="" android:textColor="@color/tt_management_text" android:textSize="28sp" android:textStyle="bold" android:layout_marginTop="8dp" />
+  <TextView android:id="@+id/recordsSubtitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/history_subtitle" android:textColor="@color/tt_management_text_secondary" android:textSize="14sp" android:layout_marginTop="8dp" />
+  <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" app:cardCornerRadius="16dp" app:cardElevation="0dp" app:strokeColor="@color/tt_management_border" app:strokeWidth="1dp" app:cardBackgroundColor="@color/tt_surface" android:id="@+id/recordsSummary" android:visibility="gone" android:layout_marginTop="20dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:padding="16dp">
+      <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_profile_users" app:tint="@color/tt_management_accent" android:importantForAccessibility="no" />
+      <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:text="@string/users_summary" android:textColor="@color/tt_management_text" android:textSize="14sp" android:textStyle="bold" />
+      <TextView android:id="@+id/recordsCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:textColor="@color/tt_management_brand" android:textSize="24sp" android:textStyle="bold" />
+    </LinearLayout>
+  </com.google.android.material.card.MaterialCardView>
+  <TextView android:id="@+id/recordsStatus" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="" android:textColor="@color/tt_management_text_secondary" android:textSize="13sp" android:layout_marginTop="16dp" android:layout_marginBottom="12dp" />
+  <com.google.android.material.button.MaterialButton android:id="@+id/btnRecordsAction" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="52dp" android:layout_marginBottom="16dp" android:textAllCaps="false" android:textStyle="bold" app:cornerRadius="14dp" app:backgroundTint="@color/management_button_background" android:textColor="@color/management_button_foreground" app:iconTint="@color/management_button_foreground" app:rippleColor="@color/tt_management_button_ripple" app:icon="@drawable/ic_management_add" />
+  <androidx.recyclerview.widget.RecyclerView android:id="@+id/recordsList" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:clipToPadding="false" android:paddingBottom="24dp" />
 </LinearLayout>
