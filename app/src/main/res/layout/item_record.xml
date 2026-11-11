@@ -1,32 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
-  android:layout_width="match_parent"
-  android:layout_height="wrap_content"
-  android:layout_marginBottom="12dp"
-  app:cardCornerRadius="16dp"
-  app:strokeColor="@color/tt_border"
-  app:strokeWidth="1dp"
-  app:cardBackgroundColor="@color/tt_surface">
-  <LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="18dp">
-    <TextView
-      android:id="@+id/recordTitle"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_marginBottom="12dp"
-      android:text=""
-      android:textSize="18sp"
-      android:textColor="@color/tt_text_primary" />
-    <TextView
-      android:id="@+id/recordDetails"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_marginBottom="12dp"
-      android:text=""
-      android:textSize="14sp"
-      android:textColor="@color/tt_text_primary" />
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="12dp" app:cardCornerRadius="16dp" app:strokeColor="@color/tt_management_border" app:strokeWidth="1dp" app:cardElevation="0dp" app:cardBackgroundColor="@color/tt_surface" android:foreground="?attr/selectableItemBackground">
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="18dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+      <TextView android:id="@+id/recordTitle" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginEnd="8dp" android:textColor="@color/tt_management_text" android:textSize="14sp" android:textStyle="bold" />
+      <TextView android:id="@+id/recordBadge" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="128dp" android:paddingHorizontal="10dp" android:paddingVertical="5dp" android:background="@drawable/bg_management_chip" android:textColor="@color/tt_management_chip_text" android:textSize="12sp" android:textStyle="bold" />
+    </LinearLayout>
+    <TextView android:id="@+id/recordEquipment" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="" android:textColor="@color/tt_management_text" android:textSize="17sp" android:textStyle="bold" android:layout_marginTop="12dp" />
+    <TextView android:id="@+id/recordDetails" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="" android:textColor="@color/tt_management_text_secondary" android:textSize="13sp" android:layout_marginTop="4dp" />
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="16dp" android:background="@color/tt_management_border" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="16dp">
+      <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_management_calendar" app:tint="@color/tt_management_accent" android:importantForAccessibility="no" />
+      <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:orientation="vertical">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/history_date" android:textColor="@color/tt_management_text_secondary" android:textSize="11sp" />
+        <TextView android:id="@+id/recordDate" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="" android:textColor="@color/tt_management_text" android:textSize="13sp" android:layout_marginTop="3dp" />
+      </LinearLayout>
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="16dp">
+      <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_profile_users" app:tint="@color/tt_management_accent" android:importantForAccessibility="no" />
+      <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:orientation="vertical">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/history_technician" android:textColor="@color/tt_management_text_secondary" android:textSize="11sp" />
+        <TextView android:id="@+id/recordTechnician" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="" android:textColor="@color/tt_management_text" android:textSize="13sp" android:layout_marginTop="3dp" />
+      </LinearLayout>
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="16dp">
+      <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_management_diagnosis" app:tint="@color/tt_management_accent" android:importantForAccessibility="no" />
+      <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:orientation="vertical">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/history_diagnosis" android:textColor="@color/tt_management_text_secondary" android:textSize="11sp" />
+        <TextView android:id="@+id/recordDiagnosis" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="" android:textColor="@color/tt_management_text" android:textSize="13sp" android:layout_marginTop="3dp" />
+      </LinearLayout>
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="16dp">
+      <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_management_repair" app:tint="@color/tt_management_accent" android:importantForAccessibility="no" />
+      <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:orientation="vertical">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/history_repair" android:textColor="@color/tt_management_text_secondary" android:textSize="11sp" />
+        <TextView android:id="@+id/recordRepair" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="" android:textColor="@color/tt_management_text" android:textSize="13sp" android:layout_marginTop="3dp" />
+      </LinearLayout>
+    </LinearLayout>
   </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

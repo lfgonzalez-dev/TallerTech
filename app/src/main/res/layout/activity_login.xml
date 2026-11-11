@@ -240,4 +240,5 @@
     </com.google.android.material.card.MaterialCardView>
 
 
+    <include layout="@layout/view_brand_splash" />
 </androidx.constraintlayout.widget.ConstraintLayout>

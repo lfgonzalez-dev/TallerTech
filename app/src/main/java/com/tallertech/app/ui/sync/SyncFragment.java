@@ -62,10 +62,12 @@ public final class SyncFragment extends Fragment {
                         : state.pending > 0 || queued ? "Pendiente" : state.lastSuccess > 0 ? "Sincronizado" : "Pendiente";
                 ((TextView) view.findViewById(R.id.syncGeneral)).setText(status);
                 ((TextView) view.findViewById(R.id.syncConnectivity)).setText(state.connected ? "Conexión disponible" : "Sin conexión a Internet");
-                ((TextView) view.findViewById(R.id.syncCounts)).setText("Pendientes: " + state.pending + "\nCon error: " + state.errors);
-                ((TextView) view.findViewById(R.id.syncLastSuccess)).setText("Última sincronización exitosa: " +
+                ((TextView) view.findViewById(R.id.syncCounts)).setText(String.valueOf(state.pending));
+                ((TextView) view.findViewById(R.id.syncErrors)).setText(String.valueOf(state.errors));
+                ((TextView) view.findViewById(R.id.syncLastSuccess)).setText(
                         (state.lastSuccess == 0 ? "Todavía no realizada" : DateFormat.getDateTimeInstance().format(new Date(state.lastSuccess))));
                 ((TextView) view.findViewById(R.id.syncProblem)).setText(state.problem == null ? "" : state.problem);
+                view.findViewById(R.id.syncProblem).setVisibility(state.problem == null ? View.GONE : View.VISIBLE);
                 view.findViewById(R.id.btnSyncNow).setEnabled(!running && !requesting);
             }
             @Override public void onError(Exception error) {

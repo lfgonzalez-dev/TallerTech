@@ -1,0 +1,1 @@
+<resources><style name="Theme.TallerTech.Starting" parent="Theme.TallerTech"><item name="android:windowBackground">@drawable/bg_splash</item></style></resources>

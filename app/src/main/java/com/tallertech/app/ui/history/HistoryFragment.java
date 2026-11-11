@@ -35,10 +35,10 @@ public final class HistoryFragment extends Fragment {
             @Override public void onResult(List<HistoryEntry> entries) {
                 if (getView() != view) return;
                 List<RecordAdapter.Row> rows = new ArrayList<>();
-                for (HistoryEntry entry : entries) rows.add(new RecordAdapter.Row(entry.code + " · " + entry.status,
-                        entry.clientName + "\n" + entry.equipmentName + "\n" +
-                        DateFormat.getDateInstance().format(new Date(entry.entryDate)) + " · " + text(entry.technician)
-                        + "\nDiagnóstico: " + text(entry.diagnosis) + "\nReparación: " + text(entry.repair), () -> open(entry.orderId)));
+                for (HistoryEntry entry : entries) rows.add(RecordAdapter.Row.history(
+                        entry.code, entry.status, entry.equipmentName, entry.clientName,
+                        DateFormat.getDateInstance().format(new Date(entry.entryDate)), text(entry.technician),
+                        text(entry.diagnosis), text(entry.repair), () -> open(entry.orderId)));
                 adapter.submit(rows);
                 ((TextView) view.findViewById(R.id.recordsStatus)).setText(entries.isEmpty() ? "No hay órdenes registradas" : entries.size() + " órdenes");
             }

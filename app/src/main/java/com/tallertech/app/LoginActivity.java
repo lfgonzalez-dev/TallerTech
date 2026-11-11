@@ -20,6 +20,7 @@ public class LoginActivity extends AppCompatActivity {
     private LoginViewModel model;
     private boolean busy;
     @Override protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.Theme_TallerTech);
         super.onCreate(savedInstanceState); EdgeToEdge.enable(this); setContentView(R.layout.activity_login);
         tilEmail = findViewById(R.id.tilEmail); tilPassword = findViewById(R.id.tilPassword);
         etEmail = findViewById(R.id.etMail); etPassword = findViewById(R.id.etPassword);
@@ -32,6 +33,9 @@ public class LoginActivity extends AppCompatActivity {
             v.setPadding(bars.left, bars.top, bars.right, bars.bottom); return insets;
         });
         model.state.observe(this, state -> {
+            if (!state.loading || state.authenticated) {
+                findViewById(R.id.brandSplash).setVisibility(android.view.View.GONE);
+            }
             loading(state.loading);
             if (state.authenticated) {
                 if (AuthRepository.isOfflineSession()) Toast.makeText(this, "Sin conexión: trabajando con datos locales", Toast.LENGTH_LONG).show();
