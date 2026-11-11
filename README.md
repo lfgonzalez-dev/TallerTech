@@ -1,1616 +1,555 @@
-\# TallerTech
+# TallerTech
 
+TallerTech es una aplicación móvil Android para la gestión de talleres técnicos. Permite administrar clientes, equipos, órdenes de servicio, diagnósticos, reparaciones, usuarios e historial de atención.
 
+El proyecto utiliza una arquitectura **offline-first**, permitiendo trabajar con datos locales mediante Room y sincronizarlos con un backend REST desarrollado en Spring Boot cuando existe conexión a Internet.
 
-Aplicación móvil Android para la gestión integral de talleres técnicos, desarrollada con arquitectura \*\*offline-first\*\*, persistencia local mediante \*\*Room\*\*, sincronización automática con una \*\*API REST en Spring Boot\*\* y despliegue productivo sobre \*\*Amazon Web Services (AWS)\*\*.
+---
 
+## Arquitectura general
 
-
-TallerTech permite administrar clientes, equipos, órdenes de servicio, diagnósticos, reparaciones, usuarios y el historial de atención desde una única aplicación móvil, manteniendo disponibilidad de los datos incluso cuando el dispositivo pierde conexión a Internet.
-
-
-
-\---
-
-
-
-\## Descripción
-
-
-
-TallerTech fue desarrollado como una solución móvil empresarial para digitalizar el flujo operativo de un taller técnico.
-
-
-
-La aplicación permite que los técnicos y administradores puedan trabajar desde un dispositivo Android mientras la información se mantiene disponible tanto de forma local como remota.
-
-
-
-El sistema implementa un modelo \*\*offline-first\*\*:
-
-
-
-1\. Las operaciones se guardan primero en la base de datos local del dispositivo.
-
-2\. Los registros pendientes se identifican mediante estados de sincronización.
-
-3\. WorkManager ejecuta la sincronización cuando existe conectividad.
-
-4\. Retrofit envía los cambios mediante HTTPS al backend.
-
-5\. Spring Boot procesa las operaciones y las persiste en MariaDB.
-
-6\. Los datos remotos se integran nuevamente con Room.
-
-
-
-Esto permite continuar trabajando incluso durante interrupciones temporales de conectividad.
-
-
-
-\---
-
-
-
-\# Arquitectura
-
-
+TallerTech está dividido en dos componentes principales:
 
 ```text
-
-┌───────────────────────────────┐
-
-│        Android App            │
-
-│                               │
-
-│ Java + XML + Material Design  │
-
-└───────────────┬───────────────┘
-
-&#x20;               │
-
-&#x20;               ▼
-
-┌───────────────────────────────┐
-
-│             Room              │
-
-│     Base de datos local       │
-
-└───────────────┬───────────────┘
-
-&#x20;               │
-
-&#x20;               ▼
-
-┌───────────────────────────────┐
-
-│         Repositories          │
-
-│                               │
-
-│ Fuente principal para la UI   │
-
-└───────────────┬───────────────┘
-
-&#x20;               │
-
-&#x20;               ▼
-
-┌───────────────────────────────┐
-
-│          WorkManager          │
-
-│      Motor de sincronización  │
-
-└───────────────┬───────────────┘
-
-&#x20;               │
-
-&#x20;             HTTPS
-
-&#x20;               │
-
-&#x20;               ▼
-
-┌───────────────────────────────┐
-
-│          AWS EC2              │
-
-│                               │
-
-│             Nginx             │
-
-└───────────────┬───────────────┘
-
-&#x20;               │
-
-&#x20;         127.0.0.1:8080
-
-&#x20;               │
-
-&#x20;               ▼
-
-┌───────────────────────────────┐
-
-│       Spring Boot API         │
-
-│                               │
-
-│ JWT + Spring Security + JPA   │
-
-└───────────────┬───────────────┘
-
-&#x20;               │
-
-&#x20;         127.0.0.1:3306
-
-&#x20;               │
-
-&#x20;               ▼
-
-┌───────────────────────────────┐
-
-│           MariaDB             │
-
-│      Base de datos remota     │
-
-└───────────────────────────────┘
-
-```
-
-
-
-\---
-
-
-
-\# Tecnologías utilizadas
-
-
-
-\## Android
-
-
-
-\- Java
-
-\- XML Views
-
-\- Material Components
-
-\- Android Studio
-
-\- Gradle Kotlin DSL
-
-\- Room 2.8.5
-
-\- Retrofit 3.0.0
-
-\- Gson Converter 3.0.0
-
-\- OkHttp 4.12.0
-
-\- WorkManager
-
-\- Android Keystore
-
-\- AES-256/GCM
-
-\- Adaptive Icons
-
-\- Splash Screen API
-
-
-
-\## Backend
-
-
-
-\- Java 21
-
-\- Spring Boot 3.5.7
-
-\- Spring Web
-
-\- Spring Data JPA
-
-\- Spring Security
-
-\- Hibernate
-
-\- Bean Validation
-
-\- JJWT 0.13.0
-
-\- BCrypt
-
-\- Maven
-
-\- REST API
-
-
-
-\## Base de datos
-
-
-
-\- MariaDB 10.11
-
-\- Room / SQLite en Android
-
-
-
-\## Infraestructura
-
-
-
-\- Amazon Web Services
-
-\- Amazon EC2
-
-\- Ubuntu Server 24.04 LTS
-
-\- Nginx
-
-\- systemd
-
-\- Elastic IP
-
-\- Let's Encrypt
-
-\- Certbot
-
-\- HTTPS / TLS
-
-
-
-\---
-
-
-
-\# Funcionalidades principales
-
-
-
-\## Autenticación
-
-
-
-\- Inicio de sesión mediante correo y contraseña.
-
-\- Autenticación mediante JWT.
-
-\- Validación de sesión existente.
-
-\- Persistencia segura del token.
-
-\- Cierre de sesión.
-
-\- Control de acceso por roles.
-
-
-
-\---
-
-
-
-\## Clientes
-
-
-
-\- Registrar clientes.
-
-\- Consultar listado.
-
-\- Buscar por nombre, teléfono o correo.
-
-\- Editar información.
-
-\- Visualizar detalle del cliente.
-
-
-
-\---
-
-
-
-\## Equipos
-
-
-
-\- Registrar equipos.
-
-\- Asociar equipos a clientes.
-
-\- Buscar equipos.
-
-\- Editar información.
-
-\- Consultar estado.
-
-\- Visualizar detalle del equipo.
-
-
-
-\---
-
-
-
-\## Órdenes de servicio
-
-
-
-\- Crear órdenes.
-
-\- Relacionar cliente y equipo.
-
-\- Registrar problema reportado.
-
-\- Asignar técnico.
-
-\- Cambiar estado.
-
-\- Buscar y filtrar órdenes.
-
-\- Consultar detalle completo.
-
-
-
-\---
-
-
-
-\## Diagnósticos
-
-
-
-\- Registrar diagnóstico de una orden.
-
-\- Consultar diagnóstico existente.
-
-\- Mantener relación directa con la orden de servicio.
-
-
-
-\---
-
-
-
-\## Reparaciones
-
-
-
-\- Registrar información de reparación.
-
-\- Consultar reparación.
-
-\- Asociar la reparación con una orden.
-
-
-
-\---
-
-
-
-\## Historial
-
-
-
-La pantalla de historial se genera a partir de la información real almacenada en Room.
-
-
-
-Permite visualizar:
-
-
-
-\- Código de orden.
-
-\- Cliente.
-
-\- Equipo.
-
-\- Fecha.
-
-\- Técnico.
-
-\- Estado.
-
-\- Diagnóstico.
-
-\- Reparación.
-
-
-
-No utiliza una tabla de historial adicional.
-
-
-
-\---
-
-
-
-\## Usuarios
-
-
-
-Los administradores pueden:
-
-
-
-\- Consultar usuarios.
-
-\- Crear usuarios.
-
-\- Editar información.
-
-\- Asignar roles.
-
-\- Administrar acceso al sistema.
-
-
-
-La contraseña nunca se almacena dentro de Room.
-
-
-
-\---
-
-
-
-\## Sincronización
-
-
-
-La aplicación incluye una pantalla dedicada para consultar:
-
-
-
-\- Estado general.
-
-\- Conectividad.
-
-\- Registros pendientes.
-
-\- Registros con error.
-
-\- Última sincronización exitosa.
-
-\- Ejecución manual de sincronización.
-
-
-
-\---
-
-
-
-\# Arquitectura offline-first
-
-
-
-Room actúa como fuente principal de datos para la interfaz.
-
-
-
-Cada registro utiliza un estado de sincronización:
-
-
-
-```text
-
-PENDING
-
-SYNCED
-
-ERROR
-
-```
-
-
-
-\## Flujo de escritura
-
-
-
-```text
-
-Usuario realiza una operación
-
-&#x20;           ↓
-
-Se guarda inmediatamente en Room
-
-&#x20;           ↓
-
-Estado = PENDING
-
-&#x20;           ↓
-
-WorkManager programa sincronización
-
-&#x20;           ↓
-
-Existe conexión a Internet
-
-&#x20;           ↓
-
-Retrofit envía el registro al servidor
-
-&#x20;           ↓
-
-Spring Boot procesa la operación
-
-&#x20;           ↓
-
-MariaDB guarda la información
-
-&#x20;           ↓
-
-Estado local = SYNCED
-
-```
-
-
-
-Si la operación falla, los datos permanecen disponibles localmente.
-
-
-
-\---
-
-
-
-\# Orden de sincronización
-
-
-
-Para mantener las relaciones entre entidades se utiliza el siguiente orden:
-
-
-
-```text
-
-1\. Clientes
-
-2\. Equipos
-
-3\. Órdenes
-
-4\. Diagnósticos
-
-5\. Reparaciones
-
-```
-
-
-
-\---
-
-
-
-\# Resolución de conflictos
-
-
-
-TallerTech utiliza una estrategia:
-
-
-
-```text
-
-Last Write Wins
-
-```
-
-
-
-Cada entidad mantiene un campo:
-
-
-
-```text
-
-updatedAt
-
-```
-
-
-
-Cuando existen dos versiones de un mismo registro, se conserva la versión más reciente.
-
-
-
-Los UUID se mantienen iguales entre Android y backend.
-
-
-
-\---
-
-
-
-\# Seguridad
-
-
-
-TallerTech incorpora diferentes mecanismos de seguridad.
-
-
-
-\## Comunicación
-
-
-
-Todo el tráfico productivo Android → servidor utiliza:
-
-
-
-```text
-
-HTTPS / TLS
-
-```
-
-
-
-\## Autenticación
-
-
-
-El backend utiliza:
-
-
-
-```text
-
-Spring Security
-
-JWT
-
-BCrypt
-
-```
-
-
-
-\## Android
-
-
-
-Los tokens se almacenan utilizando:
-
-
-
-```text
-
-Android Keystore
-
-AES-256/GCM
-
-```
-
-
-
-\## Infraestructura
-
-
-
-La arquitectura productiva evita exponer servicios internos innecesariamente.
-
-
-
-```text
-
-22    SSH         Acceso administrativo restringido
-
-80    HTTP        Redirección a HTTPS
-
-443   HTTPS       API pública
-
-8080  Spring Boot Solo localhost
-
-3306  MariaDB     Solo localhost
-
-```
-
-
-
-MariaDB y Spring Boot no están expuestos directamente a Internet.
-
-
-
-\---
-
-
-
-\# Infraestructura AWS
-
-
-
-El backend está desplegado sobre una instancia Amazon EC2.
-
-
-
-```text
-
-Sistema operativo:
-
-Ubuntu Server 24.04 LTS
-
-
-
-Servidor HTTP:
-
-Nginx
-
-
-
-Backend:
-
-Spring Boot
-
-
-
-Base de datos:
-
-MariaDB
-
-
-
-Administrador de servicios:
-
-systemd
-
-```
-
-
-
-Nginx funciona como reverse proxy:
-
-
-
-```text
-
-Internet
-
-&#x20;  ↓
-
-HTTPS :443
-
-&#x20;  ↓
-
-Nginx
-
-&#x20;  ↓
-
-127.0.0.1:8080
-
-&#x20;  ↓
-
-Spring Boot
-
-&#x20;  ↓
-
-127.0.0.1:3306
-
-&#x20;  ↓
-
-MariaDB
-
-```
-
-
-
-\---
-
-
-
-\# API productiva
-
-
-
-```text
-
-https://18.207.16.220/
-
-```
-
-
-
-La dirección corresponde a una Elastic IP asociada a la instancia EC2 del proyecto.
-
-
-
-HTTP redirige automáticamente hacia HTTPS.
-
-
-
-\---
-
-
-
-\# Certificado HTTPS
-
-
-
-El servidor utiliza certificados TLS emitidos mediante Let's Encrypt.
-
-
-
-La renovación se administra automáticamente con Certbot.
-
-
-
-Después de cada renovación, Nginx recarga automáticamente el certificado.
-
-
-
-\---
-
-
-
-\# Servicio Spring Boot
-
-
-
-El backend se ejecuta mediante systemd:
-
-
-
-```text
-
-tallertech.service
-
-```
-
-
-
-Esto permite:
-
-
-
-\- Inicio automático después de reiniciar EC2.
-
-\- Reinicio ante fallos.
-
-\- Administración mediante systemctl.
-
-\- Registro mediante journalctl.
-
-
-
-Ejemplos:
-
-
-
-```bash
-
-sudo systemctl status tallertech
-
-```
-
-
-
-```bash
-
-sudo systemctl restart tallertech
-
-```
-
-
-
-```bash
-
-sudo journalctl -u tallertech
-
-```
-
-
-
-\---
-
-
-
-\# Variables de entorno
-
-
-
-El backend utiliza variables de entorno para evitar almacenar credenciales directamente en el código fuente.
-
-
-
-Variables principales:
-
-
-
-```text
-
-DB\_URL
-
-DB\_USERNAME
-
-DB\_PASSWORD
-
-
-
-JWT\_SECRET
-
-
-
-BOOTSTRAP\_ADMIN\_NAME
-
-BOOTSTRAP\_ADMIN\_EMAIL
-
-BOOTSTRAP\_ADMIN\_PASSWORD
-
-BOOTSTRAP\_ADMIN\_ROLE
-
-
-
-SERVER\_ADDRESS
-
-SERVER\_PORT
-
-```
-
-
-
-Ejemplo:
-
-
-
-```text
-
-DB\_URL=jdbc:mariadb://127.0.0.1:3306/tallertech
-
-DB\_USERNAME=tallertech\_app
-
-DB\_PASSWORD=<password>
-
-```
-
-
-
-No deben publicarse secretos reales en el repositorio.
-
-
-
-\---
-
-
-
-\# Estructura del proyecto
-
-
-
-```text
-
 TallerTech/
-
 │
-
 ├── app/
-
-│   └── Aplicación Android
-
+│   └── Aplicación móvil Android
 │
-
-├── backend/
-
-│   └── API REST Spring Boot
-
-│
-
-├── gradle/
-
-│
-
-├── README.md
-
-│
-
-├── build.gradle.kts
-
-│
-
-└── settings.gradle.kts
-
+└── backend/
+    └── API REST desarrollada con Spring Boot
 ```
 
-
-
-\---
-
-
-
-\# Estructura Android
-
-
+El flujo general de datos es:
 
 ```text
-
-app/src/main/java/com/tallertech/app/
-
-│
-
-├── data/
-
-│   ├── local/
-
-│   ├── remote/
-
-│   ├── repository/
-
-│   └── sync/
-
-│
-
-└── ui/
-
-&#x20;   ├── clients/
-
-&#x20;   ├── equipment/
-
-&#x20;   ├── orders/
-
-&#x20;   ├── history/
-
-&#x20;   ├── users/
-
-&#x20;   ├── sync/
-
-&#x20;   └── profile/
-
-```
-
-
-
-\---
-
-
-
-\# Estructura Backend
-
-
-
-```text
-
-backend/src/main/java/com/tallertech/backend/
-
-│
-
-├── controller/
-
-├── dto/
-
-├── entity/
-
-├── repository/
-
-├── security/
-
-├── service/
-
-└── exception/
-
-```
-
-
-
-\---
-
-
-
-\# Entidades principales
-
-
-
-```text
-
-User
-
-Client
-
-Equipment
-
-ServiceOrder
-
-Diagnosis
-
-Repair
-
-```
-
-
-
-Las relaciones principales permiten mantener:
-
-
-
-```text
-
-Cliente
-
-&#x20;  ↓
-
-Equipo
-
-&#x20;  ↓
-
-Orden
-
-&#x20;  ↓
-
-Diagnóstico / Reparación
-
-```
-
-
-
-\---
-
-
-
-\# Compilación Android
-
-
-
-Desde la raíz del proyecto:
-
-
-
-```powershell
-
-.\\gradlew.bat clean assembleDebug
-
-```
-
-
-
-El APK se genera en:
-
-
-
-```text
-
-app/build/outputs/apk/debug/app-debug.apk
-
-```
-
-
-
-\---
-
-
-
-\# Compilación Backend
-
-
-
-Desde:
-
-
-
-```text
-
-TallerTech/backend
-
-```
-
-
-
-Ejecutar:
-
-
-
-```powershell
-
-.\\mvnw.cmd clean package
-
-```
-
-
-
-El JAR generado se encuentra dentro de:
-
-
-
-```text
-
-backend/target/
-
-```
-
-
-
-\---
-
-
-
-\# Pruebas
-
-
-
-Durante el desarrollo se ejecutaron:
-
-
-
-\- Pruebas unitarias Android.
-
-\- Pruebas instrumentadas.
-
-\- Pruebas backend.
-
-\- Pruebas de autenticación.
-
-\- Pruebas de autorización.
-
-\- Pruebas de API.
-
-\- Pruebas offline.
-
-\- Pruebas de sincronización.
-
-\- Pruebas sobre MariaDB real.
-
-\- Pruebas sobre infraestructura AWS.
-
-
-
-\---
-
-
-
-\# Validación real de sincronización
-
-
-
-Se realizó una prueba completa creando desde Android:
-
-
-
-```text
-
-Cliente
-
-↓
-
-Equipo
-
-↓
-
-Orden de servicio
-
-```
-
-
-
-Los datos fueron:
-
-
-
-1\. Guardados localmente mediante Room.
-
-2\. Marcados para sincronización.
-
-3\. Procesados por WorkManager.
-
-4\. Enviados mediante HTTPS.
-
-5\. Recibidos por Nginx.
-
-6\. Procesados por Spring Boot.
-
-7\. Persistidos en MariaDB.
-
-
-
-Posteriormente se verificaron directamente mediante consultas SQL en MariaDB.
-
-
-
-Flujo validado:
-
-
-
-```text
-
 Android
-
-&#x20;  ↓
-
+   ↓
 Room
-
-&#x20;  ↓
-
+   ↓
+Repositories
+   ↓
 WorkManager
-
-&#x20;  ↓
-
+   ↓
 Retrofit
-
-&#x20;  ↓
-
+   ↓
 HTTPS
-
-&#x20;  ↓
-
-AWS EC2
-
-&#x20;  ↓
-
+   ↓
 Nginx
-
-&#x20;  ↓
-
+   ↓
 Spring Boot
-
-&#x20;  ↓
-
+   ↓
 MariaDB
-
 ```
 
+---
 
+# Tecnologías utilizadas
 
-\---
+## Aplicación Android
 
+- Java
+- XML Views
+- Android Studio
+- Material Components
+- Room
+- Retrofit
+- Gson
+- OkHttp
+- WorkManager
+- Android Keystore
+- Gradle Kotlin DSL
+- Adaptive Icons
+- Splash Screen API
 
+---
 
-\# UI / UX
+## Backend
 
+- Java 21
+- Spring Boot
+- Spring Web
+- Spring Data JPA
+- Spring Security
+- Hibernate
+- Bean Validation
+- JWT
+- BCrypt
+- Maven
 
+---
 
-TallerTech utiliza una identidad visual basada en:
+## Base de datos
 
+### Local
 
+- Room
+- SQLite
 
-\- Azul marino.
+### Remota
 
-\- Acentos lilas.
+- MariaDB
 
-\- Fondos claros.
+---
 
-\- Material Cards.
+## Infraestructura
 
-\- Chips de estado.
+El backend está desplegado sobre infraestructura de Amazon Web Services.
 
-\- Iconografía personalizada.
+Tecnologías utilizadas:
 
-\- Navegación inferior.
+- Amazon EC2
+- Ubuntu Server
+- Nginx
+- systemd
+- Elastic IP
+- HTTPS
+- Let's Encrypt
+- Certbot
 
-\- Splash Screen.
+---
 
-\- Adaptive Icon.
+# Módulos principales
 
+## Autenticación
 
+Gestiona:
 
-Las principales pantallas incluyen:
+- Inicio de sesión
+- Sesiones
+- JWT
+- Roles
+- Cierre de sesión
 
+---
 
+## Clientes
+
+Permite:
+
+- Registrar clientes
+- Consultar clientes
+- Buscar clientes
+- Editar información
+- Consultar detalle
+
+---
+
+## Equipos
+
+Permite:
+
+- Registrar equipos
+- Asociar equipos a clientes
+- Consultar equipos
+- Buscar equipos
+- Editar información
+
+---
+
+## Órdenes de servicio
+
+Permite:
+
+- Crear órdenes
+- Asociar cliente y equipo
+- Registrar problema reportado
+- Asignar técnico
+- Gestionar estados
+- Consultar detalle de la orden
+
+---
+
+## Diagnósticos
+
+Permite registrar y consultar el diagnóstico asociado a una orden de servicio.
+
+---
+
+## Reparaciones
+
+Permite registrar y consultar la información de reparación asociada a una orden.
+
+---
+
+## Historial
+
+Muestra el historial de servicios utilizando la información almacenada en las órdenes, diagnósticos y reparaciones.
+
+---
+
+## Usuarios
+
+Permite administrar usuarios y roles dentro del sistema.
+
+---
+
+## Sincronización
+
+Gestiona la comunicación entre la base de datos local y el backend remoto.
+
+Cada registro puede utilizar uno de los siguientes estados:
 
 ```text
-
-Login
-
-Inicio
-
-Clientes
-
-Equipos
-
-Órdenes
-
-Perfil
-
-Sincronización
-
-Historial
-
-Usuarios
-
+PENDING
+SYNCED
+ERROR
 ```
 
+La sincronización se realiza automáticamente mediante WorkManager cuando existe conexión.
 
+---
 
-\---
+# Arquitectura offline-first
 
+Room funciona como la fuente principal de información para la interfaz de usuario.
 
+Cuando se crea o modifica un registro:
 
-\# Control de versiones
+```text
+Usuario
+   ↓
+Room
+   ↓
+Registro PENDING
+   ↓
+WorkManager
+   ↓
+Retrofit
+   ↓
+API REST
+   ↓
+MariaDB
+```
 
+De esta forma la aplicación puede seguir funcionando aunque temporalmente no exista conexión a Internet.
 
+---
+
+# Sincronización de entidades
+
+Para conservar correctamente las relaciones entre los datos, la sincronización utiliza el siguiente orden:
+
+```text
+Clientes
+   ↓
+Equipos
+   ↓
+Órdenes
+   ↓
+Diagnósticos
+   ↓
+Reparaciones
+```
+
+Los registros utilizan UUID para conservar el mismo identificador tanto en Android como en el backend.
+
+---
+
+# Resolución de conflictos
+
+La sincronización utiliza una estrategia **Last Write Wins**.
+
+Cada registro mantiene una marca de tiempo:
+
+```text
+updatedAt
+```
+
+Cuando existen dos versiones del mismo registro, se conserva la versión más reciente.
+
+---
+
+# Estructura Android
+
+La aplicación Android está organizada principalmente en:
+
+```text
+app/src/main/java/com/tallertech/app/
+│
+├── data/
+│   │
+│   ├── local/
+│   │   ├── dao/
+│   │   └── entities/
+│   │
+│   ├── remote/
+│   │   ├── api/
+│   │   └── dto/
+│   │
+│   ├── repository/
+│   │
+│   └── sync/
+│
+└── ui/
+    ├── clients/
+    ├── equipment/
+    ├── orders/
+    ├── history/
+    ├── users/
+    ├── sync/
+    └── profile/
+```
+
+### `data/local`
+
+Contiene:
+
+- Base de datos Room
+- Entidades locales
+- DAO
+
+### `data/remote`
+
+Contiene:
+
+- Retrofit
+- Endpoints REST
+- DTO
+- Configuración de comunicación con el backend
+
+### `data/repository`
+
+Funciona como intermediario entre la interfaz, Room y los servicios remotos.
+
+### `data/sync`
+
+Contiene la lógica relacionada con:
+
+- WorkManager
+- Sincronización
+- Estados de sincronización
+- Resolución de conflictos
+
+### `ui`
+
+Contiene las pantallas y componentes visuales de la aplicación.
+
+---
+
+# Estructura Backend
+
+El backend está organizado en capas:
+
+```text
+backend/src/main/java/com/tallertech/backend/
+│
+├── controller/
+├── dto/
+├── entity/
+├── repository/
+├── security/
+├── service/
+└── exception/
+```
+
+### `controller`
+
+Expone los endpoints REST.
+
+### `dto`
+
+Contiene los objetos utilizados para enviar y recibir información mediante la API.
+
+### `entity`
+
+Contiene las entidades JPA utilizadas por MariaDB.
+
+### `repository`
+
+Gestiona el acceso a los datos mediante Spring Data JPA.
+
+### `service`
+
+Contiene la lógica de negocio.
+
+### `security`
+
+Gestiona:
+
+- Spring Security
+- JWT
+- Autenticación
+- Autorización
+
+### `exception`
+
+Centraliza el manejo de errores del backend.
+
+---
+
+# Entidades principales
+
+El sistema utiliza las siguientes entidades:
+
+```text
+User
+Client
+Equipment
+ServiceOrder
+Diagnosis
+Repair
+```
+
+Las relaciones principales son:
+
+```text
+Client
+   ↓
+Equipment
+   ↓
+ServiceOrder
+   ├── Diagnosis
+   └── Repair
+```
+
+---
+
+# Seguridad
 
 El proyecto utiliza:
 
+- Spring Security
+- JWT
+- BCrypt
+- HTTPS
+- Android Keystore
+- AES-256/GCM
 
+El backend y la base de datos no están expuestos directamente al exterior.
 
-```text
-
-Git
-
-GitHub
-
-```
-
-
-
-Durante el desarrollo se utilizaron ramas independientes para implementar funcionalidades de forma segura.
-
-
-
-Ejemplos:
-
-
+Nginx funciona como reverse proxy entre Internet y Spring Boot.
 
 ```text
-
-main
-
-codex/offline-sync
-
-codex/aws-production
-
+Internet
+   ↓
+HTTPS
+   ↓
+Nginx
+   ↓
+Spring Boot
+   ↓
+MariaDB
 ```
 
+---
 
+# Configuración
 
-\---
+El backend utiliza variables de entorno para configurar credenciales y servicios.
 
-
-
-\# Checkpoints
-
-
-
-El repositorio mantiene tags importantes del desarrollo:
-
-
+Variables principales:
 
 ```text
+DB_URL
+DB_USERNAME
+DB_PASSWORD
 
-checkpoint-room-clientes
+JWT_SECRET
 
-checkpoint-room-completo
+BOOTSTRAP_ADMIN_NAME
+BOOTSTRAP_ADMIN_EMAIL
+BOOTSTRAP_ADMIN_PASSWORD
+BOOTSTRAP_ADMIN_ROLE
 
-checkpoint-backend-etapa1
-
-checkpoint-auth-retrofit
-
-checkpoint-offline-sync
-
-checkpoint-aws-production
-
-checkpoint-final-tallertech
-
+SERVER_ADDRESS
+SERVER_PORT
 ```
 
+Las credenciales reales no deben almacenarse directamente en el repositorio.
 
+---
 
-Esto permite recuperar versiones estables del proyecto.
+# Compilación Android
 
+Desde la raíz del proyecto:
 
+```powershell
+.\gradlew.bat clean assembleDebug
+```
 
-\---
+El APK generado se encuentra en:
 
+```text
+app/build/outputs/apk/debug/app-debug.apk
+```
 
+---
 
-\# Estado actual
+# Compilación Backend
 
+Desde la carpeta:
 
+```text
+backend/
+```
 
-Actualmente TallerTech cuenta con:
+Ejecutar:
 
+```powershell
+.\mvnw.cmd clean package
+```
 
+El archivo JAR generado se encuentra dentro de:
 
-\- Aplicación Android funcional.
+```text
+backend/target/
+```
 
-\- Persistencia local Room.
+---
 
-\- Backend Spring Boot.
+# Interfaz
 
-\- MariaDB.
+TallerTech utiliza una interfaz basada en Material Design con:
 
-\- Autenticación JWT.
+- Navegación inferior
+- Tarjetas
+- Chips de estado
+- Iconografía personalizada
+- Splash Screen
+- Adaptive Icon
+- Paleta azul marino y lila
 
-\- Spring Security.
+Las principales pantallas son:
 
-\- Sincronización offline-first.
+```text
+Login
+Inicio
+Clientes
+Equipos
+Órdenes
+Perfil
+Historial
+Usuarios
+Sincronización
+```
 
-\- WorkManager.
+---
 
-\- Retrofit.
+# Despliegue
 
-\- AWS EC2.
+La arquitectura productiva está compuesta por:
 
-\- Nginx.
+```text
+Android
+   ↓
+HTTPS
+   ↓
+AWS EC2
+   ↓
+Nginx
+   ↓
+Spring Boot
+   ↓
+MariaDB
+```
 
-\- HTTPS.
+Spring Boot se ejecuta como servicio de Linux mediante `systemd`.
 
-\- Elastic IP.
+---
 
-\- Perfil de usuario.
+# Autor
 
-\- Gestión de usuarios.
+Proyecto académico desarrollado para la asignatura:
 
-\- Historial.
-
-\- Pantalla de sincronización.
-
-\- Splash Screen.
-
-\- Icono personalizado.
-
-\- UI/UX consistente.
-
-\- Integración Android → AWS → MariaDB validada.
-
-
-
-\---
-
-
-
-\# Requisitos académicos cubiertos
-
-
-
-El proyecto implementa los principales componentes solicitados para una aplicación móvil empresarial:
-
-
-
-\- Persistencia local.
-
-\- Persistencia remota.
-
-\- DAO.
-
-\- Web Services REST.
-
-\- Sincronización de datos.
-
-\- Operación offline.
-
-\- Seguridad.
-
-\- Autenticación.
-
-\- Roles.
-
-\- UI/UX.
-
-\- Backend desplegado en infraestructura IaaS.
-
-\- AWS.
-
-\- HTTPS.
-
-\- Preparación para ejecución en dispositivo Android físico.
-
-
-
-\---
-
-
-
-\# Autor
-
-
-
-\*\*TallerTech\*\*  
-
-Proyecto académico desarrollado para la asignatura \*\*Desarrollo de Aplicaciones Móviles II\*\*.
-
-
-
-\---
-
-
-
-\# Licencia
-
-
-
-Proyecto desarrollado con fines académicos y educativos.
-
+**Desarrollo de Aplicaciones Móviles II**
