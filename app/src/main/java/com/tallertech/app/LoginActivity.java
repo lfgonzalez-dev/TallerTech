@@ -38,6 +38,8 @@ public class LoginActivity extends AppCompatActivity {
             }
             loading(state.loading);
             if (state.authenticated) {
+                String warning = AuthRepository.getCompatibilityWarning();
+                if (warning != null) Toast.makeText(this, warning, Toast.LENGTH_LONG).show();
                 if (AuthRepository.isOfflineSession()) Toast.makeText(this, "Sin conexión: trabajando con datos locales", Toast.LENGTH_LONG).show();
                 result().success();
             } else if (state.error != null) Toast.makeText(this, state.error, Toast.LENGTH_LONG).show();

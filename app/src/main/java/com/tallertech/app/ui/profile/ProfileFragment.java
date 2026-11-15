@@ -19,7 +19,8 @@ public class ProfileFragment extends Fragment {
         if (user != null) {
             ((TextView) view.findViewById(R.id.sessionUser)).setText(user.name);
             ((TextView) view.findViewById(R.id.profileEmail)).setText(user.email);
-            ((TextView) view.findViewById(R.id.profileRole)).setText(com.tallertech.app.data.repository.UserRepository.roleLabel(user.role));
+            ((TextView) view.findViewById(R.id.profileRole)).setText(user.role == null
+                    ? "Cuenta Firebase" : com.tallertech.app.data.repository.UserRepository.roleLabel(user.role));
             StringBuilder initials = new StringBuilder();
             for (String part : user.name.trim().split("\\s+")) {
                 if (!part.isEmpty() && initials.length() < 2) initials.append(part.substring(0, 1));

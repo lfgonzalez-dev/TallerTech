@@ -3,96 +3,114 @@ package com.tallertech.app.data.repository;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-import com.tallertech.app.data.remote.*;
-import com.tallertech.app.data.remote.api.TallerTechApi;
-import com.tallertech.app.data.remote.dto.auth.*;
-import com.tallertech.app.data.remote.session.TokenManager;
+import com.tallertech.app.data.remote.dto.auth.UserDto;
+import com.tallertech.app.data.sync.SyncManager;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import retrofit2.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
-/** Authentication only: never writes remote business records into Room. */
+/** Firebase owns the app session; Spring Boot credentials are optional and temporary. */
 public final class AuthRepository {
     private static final ExecutorService IO = Executors.newSingleThreadExecutor();
-    private static volatile UserDto currentUser;
-    private static volatile boolean offlineSession;
+    private static final AtomicInteger generation = new AtomicInteger();
+    private static volatile LegacyAuthBridge.Session backend;
+    private static volatile String backendUid;
+    private static volatile String compatibilityWarning;
+    private static volatile String sessionUid;
     private final Handler main = new Handler(Looper.getMainLooper());
-    private final TallerTechApi api;
-    private final TokenManager tokens;
-    private final com.tallertech.app.data.local.TallerTechDatabase database;
+    private final FirebaseAuthRepository firebase = FirebaseAuthRepository.getInstance();
+    private final LegacyAuthBridge legacy;
+    private final Context context;
+
     public interface Result { void success(); void error(String message); }
     public AuthRepository(Context context) {
-        api = RetrofitClient.getApi(context); tokens = new TokenManager(context);
-        database = com.tallertech.app.data.local.TallerTechDatabase.getInstance(context);
+        this.context = context.getApplicationContext();
+        legacy = new LegacyAuthBridge(this.context);
     }
-    private void cacheUser(UserDto user) {
-        database.userDao().insert(new com.tallertech.app.data.local.entity.UserEntity(
-                user.id, user.name, user.email, user.role, user.updatedAt));
+
+    /** Existing 401 callers invalidate only the legacy session, never Firebase. */
+    public static void invalidateSession() {
+        backend = null; backendUid = null; compatibilityWarning = LegacyAuthBridge.UNAVAILABLE;
     }
-    public static final androidx.lifecycle.MutableLiveData<Boolean> expiredSession = new androidx.lifecycle.MutableLiveData<>(false);
-    public static void invalidateSession() { currentUser = null; offlineSession = false; expiredSession.postValue(true); }
-    public static UserDto getCurrentUser() { return currentUser; }
+
+    public static UserDto getCurrentUser() {
+        FirebaseAuthRepository.User user = FirebaseAuthRepository.getInstance().getCurrentUser();
+        if (user == null) return null;
+        LegacyAuthBridge.Session session = backend;
+        if (user.uid.equals(backendUid) && session != null && LegacyAuthBridge.matches(user.email, session.user))
+            return session.user;
+        // UI projection only: never insert Firebase UIDs into the backend's Room user table.
+        UserDto display = new UserDto();
+        display.id = user.uid; display.email = user.email;
+        display.name = user.name == null || user.name.trim().isEmpty() ? (user.email == null ? "Usuario" : user.email) : user.name;
+        display.role = null;
+        return display;
+    }
     static void updateCurrentUser(UserDto user) {
-        UserDto current = currentUser;
-        if (current != null && current.id.equals(user.id)) currentUser = user;
+        LegacyAuthBridge.Session session = backend;
+        FirebaseAuthRepository.User firebaseUser = FirebaseAuthRepository.getInstance().getCurrentUser();
+        if (session != null && firebaseUser != null && firebaseUser.uid.equals(backendUid)
+                && session.user.id.equals(user.id) && LegacyAuthBridge.matches(firebaseUser.email, user))
+            backend = new LegacyAuthBridge.Session(user, session.offline);
     }
-    public static boolean isOfflineSession() { return offlineSession; }
+    public static boolean isOfflineSession() { LegacyAuthBridge.Session session = backend; return session != null && session.offline; }
+    public static String getCompatibilityWarning() { return compatibilityWarning; }
+    public static boolean isSessionInitialized() {
+        String uid = FirebaseAuthRepository.getInstance().getUid();
+        return uid != null && uid.equals(sessionUid);
+    }
+
     public void login(String email, String password, Result result) {
-        api.login(new LoginRequest(email, password)).enqueue(new Callback<LoginResponse>() {
-            @Override public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
-                if (!response.isSuccessful() || response.body() == null) {
-                    result.error(response.code() == 401 ? "Correo o contraseña incorrectos" : ApiErrors.message(response)); return;
-                }
-                LoginResponse body = response.body();
-                if (body.user == null || body.token == null || body.token.trim().isEmpty() || !"Bearer".equals(body.tokenType)) {
-                    result.error("Respuesta de autenticación inválida"); return;
-                }
-                IO.execute(() -> {
-                    try { tokens.saveToken(body.token); cacheUser(body.user); currentUser = body.user; offlineSession = false; expiredSession.postValue(false); main.post(result::success); }
-                    catch (RuntimeException ex) { main.post(() -> result.error("No se pudo guardar la sesión local")); }
-                });
-            }
-            @Override public void onFailure(Call<LoginResponse> call, Throwable error) { result.error(ApiErrors.message(error)); }
+        int request = generation.incrementAndGet();
+        invalidateSession();
+        IO.execute(legacy::clear);
+        firebase.login(email, password, (user, error) -> {
+            if (request != generation.get()) return;
+            if (user == null) { result.error(error); return; }
+            IO.execute(() -> {
+                LegacyAuthBridge.Session session = legacy.login(user.uid, user.email, password);
+                main.post(() -> finishSession(request, user.uid, session, result));
+            });
         });
     }
+
     public void validateSession(Result result) {
-        IO.execute(() -> {
-            if (!tokens.hasToken()) { currentUser = null; main.post(() -> result.error(null)); return; }
-            main.post(() -> api.me().enqueue(new Callback<UserDto>() {
-                @Override public void onResponse(Call<UserDto> call, Response<UserDto> response) {
-                    if (response.isSuccessful() && response.body() != null) {
-                        UserDto user = response.body();
-                        IO.execute(() -> {
-                            try {
-                                cacheUser(user); currentUser = user; offlineSession = false; expiredSession.postValue(false);
-                                main.post(result::success);
-                            } catch (RuntimeException ex) {
-                                main.post(() -> result.error("No se pudo cargar la sesión local"));
-                            }
-                        });
-                    } else {
-                        currentUser = null;
-                        if (response.code() == 401) IO.execute(tokens::clearToken);
-                        result.error(ApiErrors.message(response));
-                    }
-                }
-                @Override public void onFailure(Call<UserDto> call, Throwable error) {
-                    IO.execute(() -> {
-                        UserDto cached = error instanceof java.io.IOException ? tokens.offlineUser() : null;
-                        if (cached != null) {
-                            var local = database.userDao().getById(cached.id);
-                            if (local != null) cached.name = local.getName();
-                        }
-                        currentUser = cached; offlineSession = cached != null;
-                        main.post(() -> {
-                            if (cached != null) result.success(); else result.error(ApiErrors.message(error));
-                        });
-                    });
-                }
-            }));
+        int request = generation.incrementAndGet();
+        firebase.validateSession((user, error) -> {
+            if (request != generation.get()) return;
+            if (user == null) {
+                invalidateSession();
+                IO.execute(() -> {
+                    legacy.clear();
+                    main.post(() -> { if (request == generation.get()) result.error(error); });
+                });
+                return;
+            }
+            IO.execute(() -> {
+                LegacyAuthBridge.Session session = legacy.restore(user.uid, user.email);
+                main.post(() -> finishSession(request, user.uid, session, result));
+            });
         });
     }
+
+    private void finishSession(int request, String uid, LegacyAuthBridge.Session session, Result result) {
+        if (request != generation.get() || !uid.equals(firebase.getUid())) return;
+        sessionUid = uid;
+        backendUid = uid; backend = session;
+        compatibilityWarning = session == null ? LegacyAuthBridge.UNAVAILABLE : null;
+        if (session == null) SyncManager.problem(context, LegacyAuthBridge.UNAVAILABLE);
+        else {
+            SyncManager.preferences(context).edit().remove("problem").apply();
+            SyncManager.request(context);
+        }
+        result.success();
+    }
+
     public void logout(Runnable done) {
-        IO.execute(() -> { tokens.clearToken(); currentUser = null; offlineSession = false; main.post(done); });
+        generation.incrementAndGet();
+        firebase.logout();
+        backend = null; backendUid = null; compatibilityWarning = null; sessionUid = null;
+        androidx.work.WorkManager.getInstance(context).cancelUniqueWork(SyncManager.WORK_NAME);
+        IO.execute(() -> { legacy.clear(); main.post(done); });
     }
 }

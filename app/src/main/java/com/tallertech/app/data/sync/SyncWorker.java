@@ -19,7 +19,7 @@ public final class SyncWorker extends Worker {
         } catch (SyncHttp.Failure ex) {
             if (ex.code == 401) {
                 com.tallertech.app.data.repository.AuthRepository.invalidateSession();
-                SyncManager.problem(context, "Sesión expirada. Inicia sesión para sincronizar.");
+                SyncManager.problem(context, "Sesión del servidor anterior no disponible. Cierra sesión e ingresa nuevamente para sincronizar. Tus datos locales se conservan.");
                 return Result.failure();
             }
             SyncManager.problem(context, ex.code == 403 ? "Sin permiso para sincronizar (403)" : "Servidor: HTTP " + ex.code);

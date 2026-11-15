@@ -25,6 +25,8 @@ public final class SyncCoordinator {
     }
     private void checkSession() throws IOException {
         if (stopped.getAsBoolean()) throw new IOException("Trabajo interrumpido");
-        if (!new TokenManager(context).hasToken()) throw new SyncHttp.Failure(401);
+        if (new TokenManager(context).getTokenForUser(
+                com.tallertech.app.data.repository.FirebaseAuthRepository.getInstance().getUid()) == null)
+            throw new SyncHttp.Failure(401);
     }
 }

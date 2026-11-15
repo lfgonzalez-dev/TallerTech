@@ -23,7 +23,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (com.tallertech.app.data.repository.AuthRepository.getCurrentUser() == null) {
+        if (!com.tallertech.app.data.repository.FirebaseAuthRepository.getInstance().isAuthenticated()
+                || !com.tallertech.app.data.repository.AuthRepository.isSessionInitialized()) {
             startActivity(new android.content.Intent(this, LoginActivity.class)
                     .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK));
             finish();
@@ -33,8 +34,8 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
 
         setContentView(R.layout.activity_main);
-        com.tallertech.app.data.repository.AuthRepository.expiredSession.observe(this, expired -> {
-            if (Boolean.TRUE.equals(expired)) {
+        com.tallertech.app.data.repository.FirebaseAuthRepository.getInstance().session().observe(this, user -> {
+            if (user == null) {
                 startActivity(new android.content.Intent(this, LoginActivity.class)
                         .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK));
                 finish();
@@ -109,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override protected void onResume() {
         super.onResume();
-        if (com.tallertech.app.data.repository.AuthRepository.getCurrentUser() != null)
+        if (com.tallertech.app.data.repository.AuthRepository.isSessionInitialized())
             com.tallertech.app.data.sync.SyncManager.request(this);
     }
     private void cambiarFragment(Fragment fragment) {
