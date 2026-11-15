@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "412371326337",
+    "project_id": "tallertech-161d4",
+    "storage_bucket": "tallertech-161d4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:412371326337:android:4e0e3b59bc1a0b15adc480",
+        "android_client_info": {
+          "package_name": "com.tallertech.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_BsRudkrkvPmtp1cwozYlp77ZnRXArIA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
